@@ -91,13 +91,13 @@ Se modeló el sistema para verificar:
 
 ---
 
-## 📎 Repositorio
+## Repositorio
 
-👉 https://github.com/Axel-Pariona/Detector-de-Spam---Programaci-n-concurrente-y-distribuida
+ https://github.com/Axel-Pariona/Detector-de-Spam---Programaci-n-concurrente-y-distribuida
 
 ---
 
-## 📌 Notas
+## Notas
 
 - Se utilizaron datos sintéticos para simular texto libre
 - El enfoque principal está en concurrencia, no en ML avanzado
