@@ -393,7 +393,7 @@ func main() {
 	close(auditChan)
 	auditWG.Wait()
 
-	fmt.Println("\n===== CLEANING SUMMARY =====")
+	fmt.Println("\n===== Resumen de la limpieza =====")
 	fmt.Println("Total Read:", totalRead)
 	fmt.Println("Final Clean:", totalClean)
 	fmt.Println("Normalized Fields:", totalNormalized)
