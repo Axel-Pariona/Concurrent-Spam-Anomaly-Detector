@@ -125,7 +125,7 @@ func main() {
 	fmt.Println("Registros válidos:", cleanCount)
 	fmt.Println("Tiempo:", time.Since(start))
 
-	fmt.Println("\n📁 Archivos generados: ")
+	fmt.Println("\n📁 Archivos generados:")
 	fmt.Println("- dataset_final.csv")
 	fmt.Println("- spam_detected.csv")
 }
