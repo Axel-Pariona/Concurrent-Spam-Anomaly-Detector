@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -128,4 +129,9 @@ func main() {
 	fmt.Println("\n📁 Archivos generados:")
 	fmt.Println("- dataset_final.csv")
 	fmt.Println("- spam_detected.csv")
+
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+
+	fmt.Printf("Memoria usada: %.2f MB\n", float64(m.Alloc)/1024/1024)
 }
