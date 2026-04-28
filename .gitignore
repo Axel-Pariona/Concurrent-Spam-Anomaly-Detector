@@ -4,3 +4,4 @@ dataset/rejected_records.csv
 dataset/reporte_limpieza.txt
 dataset/dataset_final.csv
 dataset/spam_detected.csv
+dataset/*.csv
