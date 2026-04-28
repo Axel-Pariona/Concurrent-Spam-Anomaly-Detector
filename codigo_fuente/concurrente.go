@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -231,4 +232,9 @@ func main() {
 	fmt.Println("\n📁 Archivos generados:")
 	fmt.Println("- dataset_final_concurrent.csv")
 	fmt.Println("- spam_detected_concurrent.csv")
+
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+
+	fmt.Printf("Memoria usada: %.2f MB\n", float64(m.Alloc)/1024/1024)
 }
