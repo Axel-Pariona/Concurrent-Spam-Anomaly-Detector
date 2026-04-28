@@ -3,402 +3,608 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
-	"net"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
 )
 
-type Reclamo struct {
-	ID              string
-	Timestamp       string
-	UsuarioID       string
-	IPAddress       string
-	Empresa         string
-	Departamento    string
-	Servicio        string
-	MedioPresent    string
-	TipoQueja       string
-	TextoReclamo    string
-	IsSyntheticSpam string
+var palabrasInformativas = []string{
+	"RECLAMO",
+	"ESTAFA",
+	"COBRO",
+	"GARANTIA",
+	"GARANTÍA",
+	"FRAUDE",
+	"PRODUCTO",
+	"SERVICIO",
+	"SOLUCION",
+	"SOLUCIÓN",
+	"INCUMPLIMIENTO",
+	"DENUNCIA",
 }
 
-type CleaningEvent struct {
-	RecordID      string
-	Action        string
-	Field         string
-	OriginalValue string
-	NewValue      string
-	Reason        string
+// =====================
+// ESTRUCTURAS
+// =====================
+type Record struct {
+	ODI               string
+	SiglasArea        string
+	Anio              string
+	NroExpediente     string
+	TipoExpediente    string
+	FechaPresentacion string
+	Sector            string
+	SubSector         string
+	Denunciados       string
+	RUC               string
+	Texto             string
+	Timestamp         string
+	IP                string
 }
 
-var (
-	totalRead          int
-	totalClean         int
-	totalNormalized    int
-	totalInvalidIP     int
-	totalInvalidTS     int
-	totalMissingFields int
-	totalDuplicates    int
-	statsMutex         sync.Mutex
-)
+type RejectedRecord struct {
+	NroExpediente string
+	Texto         string
+	IP            string
+	Motivo        string
+}
 
-func fixEncoding(s string) string {
-	replacements := map[string]string{
-		"Ã‰": "É",
-		"Ã“": "Ó",
-		"Ãš": "Ú",
-		"Ã": "Á",
-		"Ã": "Í",
-		"Ã‘": "Ñ",
-		"Ã¡": "á",
-		"Ã©": "é",
-		"Ã­": "í",
-		"Ã³": "ó",
-		"Ãº": "ú",
-		"Ã±": "ñ",
+// =====================
+// MÉTRICAS
+// =====================
+var stats = struct {
+	totalLeidos        int
+	totalProcesados    int
+	totalDescartados   int
+	textosNormalizados int
+	textosVacios       int
+	filasCorruptas     int
+	mu                 sync.Mutex
+}{}
+
+// Motivos
+var motivosRechazo = struct {
+	data map[string]int
+	mu   sync.Mutex
+}{
+	data: make(map[string]int),
+}
+
+var advertencias = struct {
+	data map[string]int
+	mu   sync.Mutex
+}{
+	data: make(map[string]int),
+}
+
+// =====================
+// HELPERS
+// =====================
+func safeGet(row []string, index int) string {
+	if index >= len(row) {
+		return ""
+	}
+	return row[index]
+}
+
+func canonicalHeader(h string) string {
+	h = strings.TrimPrefix(h, "\ufeff")
+	h = strings.TrimSpace(h)
+	h = strings.ToUpper(h)
+	h = strings.ReplaceAll(h, " ", "_")
+	return h
+}
+
+func getByHeader(row []string, indexByHeader map[string]int, fallback int, keys ...string) string {
+	for _, key := range keys {
+		idx, ok := indexByHeader[canonicalHeader(key)]
+		if ok {
+			return safeGet(row, idx)
+		}
 	}
 
-	for wrong, correct := range replacements {
-		s = strings.ReplaceAll(s, wrong, correct)
+	if fallback >= 0 {
+		return safeGet(row, fallback)
 	}
 
-	return s
+	return ""
 }
 
-func normalizeField(s string) string {
-	s = fixEncoding(s)
-	s = strings.TrimSpace(s)
+func incrementReason(target *struct {
+	data map[string]int
+	mu   sync.Mutex
+}, reason string) {
+	target.mu.Lock()
+	target.data[reason]++
+	target.mu.Unlock()
+}
 
-	if s == "-" || s == "null" || s == "N/A" {
+func writeReasonBlock(file *os.File, title string, source *struct {
+	data map[string]int
+	mu   sync.Mutex
+}) {
+	file.WriteString(title + "\n")
+
+	source.mu.Lock()
+	keys := make([]string, 0, len(source.data))
+	for k := range source.data {
+		keys = append(keys, k)
+	}
+	source.mu.Unlock()
+
+	sort.Strings(keys)
+
+	if len(keys) == 0 {
+		file.WriteString("- NINGUNA: 0\n\n")
+		return
+	}
+
+	for _, k := range keys {
+		source.mu.Lock()
+		v := source.data[k]
+		source.mu.Unlock()
+		file.WriteString(fmt.Sprintf("- %s: %d\n", k, v))
+	}
+
+	file.WriteString("\n")
+}
+
+func allRunesEqual(s string) bool {
+	r := []rune(s)
+	if len(r) <= 1 {
+		return true
+	}
+
+	for i := 1; i < len(r); i++ {
+		if r[i] != r[0] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func isOnlyPunctuation(token string) bool {
+	trimmed := strings.Trim(token, "!?.,;:-_*/\\|\"'`()[]{}")
+	return trimmed == ""
+}
+
+func hasInformativeKeyword(text string) bool {
+	for _, kw := range palabrasInformativas {
+		if strings.Contains(text, kw) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isLowSignalText(text string, words []string) bool {
+	if len(words) == 0 {
+		return true
+	}
+
+	if len(words) == 1 {
+		token := words[0]
+		r := []rune(token)
+
+		if len(r) <= 2 {
+			return true
+		}
+
+		if isOnlyPunctuation(token) {
+			return true
+		}
+
+		if allRunesEqual(token) && len(r) >= 3 {
+			return true
+		}
+	}
+
+	if len(words) <= 3 {
+		allEqual := true
+		for i := 1; i < len(words); i++ {
+			if words[i] != words[0] {
+				allEqual = false
+				break
+			}
+		}
+		if allEqual {
+			return true
+		}
+	}
+
+	return len([]rune(text)) < 8 && len(words) <= 2
+}
+
+func classifyShortTextWarning(texto string) string {
+	text := strings.TrimSpace(strings.ToUpper(texto))
+	if text == "" {
 		return ""
 	}
 
-	return strings.ToUpper(s)
-}
+	words := strings.Fields(text)
+	charCount := len([]rune(text))
+	informative := hasInformativeKeyword(text)
 
-func normalizeTimestamp(ts string) (string, error) {
-	layouts := []string{
-		"2/01/2006 15:04",
-		"2006-01-02 15:04:05",
-		"02-01-2006 15:04",
-		"2006/01/02 15:04",
+	if charCount < 8 {
+		if informative {
+			return "TEXTO_CORTO_BAJO"
+		}
+		return "TEXTO_CORTO_ALTO"
 	}
 
-	for _, layout := range layouts {
-		if parsed, err := time.Parse(layout, ts); err == nil {
-			return parsed.Format("2006-01-02 15:04:05"), nil
+	if len(words) <= 2 {
+		if informative {
+			return "TEXTO_CORTO_BAJO"
 		}
+
+		if isLowSignalText(text, words) {
+			return "TEXTO_CORTO_ALTO"
+		}
+
+		return "TEXTO_CORTO_MEDIO"
 	}
 
-	return "", fmt.Errorf("invalid timestamp")
+	if charCount < 15 && !informative {
+		return "TEXTO_CORTO_MEDIO"
+	}
+
+	return ""
 }
 
-func normalizerWorker(
-	in <-chan Reclamo,
-	out chan<- Reclamo,
-	audit chan<- CleaningEvent,
-	wg *sync.WaitGroup,
-) {
-	defer wg.Done()
+// =====================
+// NORMALIZER
+// =====================
+func normalizer(in <-chan Record, out chan<- Record) {
+	for rec := range in {
 
-	for r := range in {
+		original := rec.Texto
 
-		fields := map[string]*string{
-			"empresa":            &r.Empresa,
-			"departamento":       &r.Departamento,
-			"servicio":           &r.Servicio,
-			"medio_presentacion": &r.MedioPresent,
-			"tipo_queja":         &r.TipoQueja,
-			"texto_reclamo":      &r.TextoReclamo,
+		rec.Texto = strings.ToUpper(strings.TrimSpace(rec.Texto))
+		rec.Texto = strings.Join(strings.Fields(rec.Texto), " ")
+
+		rec.Sector = strings.ToUpper(strings.TrimSpace(rec.Sector))
+
+		if rec.Texto != original {
+			stats.mu.Lock()
+			stats.textosNormalizados++
+			stats.mu.Unlock()
 		}
 
-		for fieldName, fieldPtr := range fields {
-			original := *fieldPtr
-			normalized := normalizeField(original)
+		if rec.Texto == "" || rec.Texto == "-" {
+			rec.Texto = "RECLAMO VACIO"
 
-			if original != normalized {
-				*fieldPtr = normalized
-
-				audit <- CleaningEvent{
-					RecordID:      r.ID,
-					Action:        "NORMALIZED",
-					Field:         fieldName,
-					OriginalValue: original,
-					NewValue:      normalized,
-					Reason:        "trim/uppercase/encoding_fix",
-				}
-
-				statsMutex.Lock()
-				totalNormalized++
-				statsMutex.Unlock()
-			}
+			stats.mu.Lock()
+			stats.textosVacios++
+			stats.mu.Unlock()
 		}
 
-		originalTS := r.Timestamp
-		ts, err := normalizeTimestamp(r.Timestamp)
-		if err == nil && ts != originalTS {
-			r.Timestamp = ts
-
-			audit <- CleaningEvent{
-				RecordID:      r.ID,
-				Action:        "NORMALIZED",
-				Field:         "timestamp",
-				OriginalValue: originalTS,
-				NewValue:      ts,
-				Reason:        "timestamp_standardization",
-			}
-
-			statsMutex.Lock()
-			totalNormalized++
-			statsMutex.Unlock()
-		}
-
-		out <- r
+		out <- rec
 	}
 }
 
-func validatorWorker(
-	in <-chan Reclamo,
-	out chan<- Reclamo,
-	audit chan<- CleaningEvent,
-	wg *sync.WaitGroup,
-) {
-	defer wg.Done()
+// =====================
+// VALIDATOR
+// =====================
+func validator(in <-chan Record, out chan<- Record, reject chan<- RejectedRecord) {
+	for rec := range in {
 
-	for r := range in {
+		texto := strings.TrimSpace(rec.Texto)
+		ip := strings.TrimSpace(rec.IP)
+		palabras := len(strings.Fields(texto))
 
-		if r.UsuarioID == "" || r.TextoReclamo == "" {
-			audit <- CleaningEvent{
-				RecordID:      r.ID,
-				Action:        "REMOVED",
-				Field:         "required_fields",
-				OriginalValue: "",
-				NewValue:      "",
-				Reason:        "missing_required_field",
-			}
+		// 🔴 1. EXPEDIENTE OBLIGATORIO
+		if strings.TrimSpace(rec.NroExpediente) == "" {
+			stats.mu.Lock()
+			stats.totalDescartados++
+			stats.mu.Unlock()
 
-			statsMutex.Lock()
-			totalMissingFields++
-			statsMutex.Unlock()
+			incrementReason(&motivosRechazo, "SIN_EXPEDIENTE")
 
+			reject <- RejectedRecord{rec.NroExpediente, rec.Texto, rec.IP, "SIN_EXPEDIENTE"}
 			continue
 		}
 
-		if _, err := time.Parse("2006-01-02 15:04:05", r.Timestamp); err != nil {
-			audit <- CleaningEvent{
-				RecordID:      r.ID,
-				Action:        "REMOVED",
-				Field:         "timestamp",
-				OriginalValue: r.Timestamp,
-				NewValue:      "",
-				Reason:        "invalid_timestamp",
-			}
+		// 🔴 2. TEXTO VACÍO REAL
+		if texto == "" || texto == "RECLAMO VACIO" {
+			stats.mu.Lock()
+			stats.totalDescartados++
+			stats.mu.Unlock()
 
-			statsMutex.Lock()
-			totalInvalidTS++
-			statsMutex.Unlock()
+			incrementReason(&motivosRechazo, "TEXTO_VACIO")
 
+			reject <- RejectedRecord{rec.NroExpediente, rec.Texto, rec.IP, "TEXTO_VACIO"}
 			continue
 		}
 
-		if net.ParseIP(r.IPAddress) == nil {
-			audit <- CleaningEvent{
-				RecordID:      r.ID,
-				Action:        "REMOVED",
-				Field:         "ip_address",
-				OriginalValue: r.IPAddress,
-				NewValue:      "",
-				Reason:        "invalid_ip",
-			}
+		// 🔴 3. TEXTO BASURA (REALMENTE INÚTIL)
+		if palabras == 1 && len(texto) <= 3 {
+			stats.mu.Lock()
+			stats.totalDescartados++
+			stats.mu.Unlock()
 
-			statsMutex.Lock()
-			totalInvalidIP++
-			statsMutex.Unlock()
+			incrementReason(&motivosRechazo, "TEXTO_BASURA")
 
+			reject <- RejectedRecord{rec.NroExpediente, rec.Texto, rec.IP, "TEXTO_BASURA"}
 			continue
 		}
 
-		out <- r
+		// 🟡 4. TEXTO CORTO: CLASIFICAR POR SEVERIDAD (NO DESCARTAR)
+		if shortWarning := classifyShortTextWarning(texto); shortWarning != "" {
+			incrementReason(&advertencias, shortWarning)
+		}
+
+		// 🔴 5. IP INVÁLIDA
+		if ip == "" ||
+			ip == "IP_INVALIDA" ||
+			strings.Contains(ip, "999") ||
+			strings.Contains(ip, "abc") {
+
+			stats.mu.Lock()
+			stats.totalDescartados++
+			stats.mu.Unlock()
+
+			incrementReason(&motivosRechazo, "IP_INVALIDA")
+
+			reject <- RejectedRecord{rec.NroExpediente, rec.Texto, rec.IP, "IP_INVALIDA"}
+			continue
+		}
+
+		// 🟡 6. TIMESTAMP VACÍO → CORREGIR
+		if strings.TrimSpace(rec.Timestamp) == "" {
+			rec.Timestamp = "SIN_FECHA"
+			incrementReason(&advertencias, "TIMESTAMP_CORREGIDO")
+		}
+
+		// ✅ válido
+		stats.mu.Lock()
+		stats.totalProcesados++
+		stats.mu.Unlock()
+
+		out <- rec
 	}
 }
 
-func deduplicator(
-	in <-chan Reclamo,
-	out chan<- Reclamo,
-	audit chan<- CleaningEvent,
-) {
-	seen := make(map[string]bool)
+// =====================
+// WRITER CLEAN
+// =====================
+func writer(in <-chan Record, done chan<- bool) {
 
-	for r := range in {
-		key := r.UsuarioID + "|" + r.Timestamp + "|" + r.TextoReclamo
+	file, _ := os.Create("../dataset/dataset_clean.csv")
+	defer file.Close()
 
-		if seen[key] {
-			audit <- CleaningEvent{
-				RecordID:      r.ID,
-				Action:        "REMOVED",
-				Field:         "duplicate",
-				OriginalValue: "",
-				NewValue:      "",
-				Reason:        "duplicate_record",
-			}
+	w := csv.NewWriter(file)
+	defer w.Flush()
 
-			statsMutex.Lock()
-			totalDuplicates++
-			statsMutex.Unlock()
+	w.Write([]string{
+		"ODI", "SIGLAS_AREA", "ANIO", "NRO_EXPEDIENTE",
+		"TIPO_EXPEDIENTE", "FECHA_PRESENTACION",
+		"SECTOR", "SUB_SECTOR", "DENUNCIADOS", "RUC",
+		"TEXTO", "TIMESTAMP", "IP",
+	})
 
-			continue
-		}
-
-		seen[key] = true
-		out <- r
+	for rec := range in {
+		w.Write([]string{
+			rec.ODI,
+			rec.SiglasArea,
+			rec.Anio,
+			rec.NroExpediente,
+			rec.TipoExpediente,
+			rec.FechaPresentacion,
+			rec.Sector,
+			rec.SubSector,
+			rec.Denunciados,
+			rec.RUC,
+			rec.Texto,
+			rec.Timestamp,
+			rec.IP,
+		})
 	}
 
-	close(out)
+	done <- true
 }
 
-func main() {
+// =====================
+// WRITER REJECTED
+// =====================
+func rejectedWriter(in <-chan RejectedRecord, done chan<- bool) {
 
-	file, err := os.Open("../Dataset/dataset_1M_raw.csv")
+	file, _ := os.Create("../dataset/rejected_records.csv")
+	defer file.Close()
+
+	w := csv.NewWriter(file)
+	defer w.Flush()
+
+	w.Write([]string{"NRO_EXPEDIENTE", "TEXTO", "IP", "MOTIVO"})
+
+	count := 0
+	limit := 10000
+
+	for rec := range in {
+		if count < limit {
+			w.Write([]string{
+				rec.NroExpediente,
+				rec.Texto,
+				rec.IP,
+				rec.Motivo,
+			})
+			count++
+		}
+	}
+
+	done <- true
+}
+
+// =====================
+// READER
+// =====================
+func reader(path string, out chan<- Record) {
+
+	file, err := os.Open(path)
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
 
-	reader := csv.NewReader(file)
+	r := csv.NewReader(file)
+	r.FieldsPerRecord = -1
 
-	outputFile, _ := os.Create("../Dataset/dataset_clean.csv")
-	defer outputFile.Close()
-
-	reportFile, _ := os.Create("../Dataset/cleaning_report.csv")
-	defer reportFile.Close()
-
-	writer := csv.NewWriter(outputFile)
-	defer writer.Flush()
-
-	reportWriter := csv.NewWriter(reportFile)
-	defer reportWriter.Flush()
-
-	header, _ := reader.Read()
-	writer.Write(header)
-
-	reportWriter.Write([]string{
-		"record_id",
-		"action",
-		"field",
-		"original_value",
-		"new_value",
-		"reason",
-	})
-
-	rawChan := make(chan Reclamo, 1000)
-	normChan := make(chan Reclamo, 1000)
-	validChan := make(chan Reclamo, 1000)
-	finalChan := make(chan Reclamo, 1000)
-	auditChan := make(chan CleaningEvent, 10000)
-
-	var auditWG sync.WaitGroup
-	auditWG.Add(1)
-
-	go func() {
-		defer auditWG.Done()
-
-		for event := range auditChan {
-			reportWriter.Write([]string{
-				event.RecordID,
-				event.Action,
-				event.Field,
-				event.OriginalValue,
-				event.NewValue,
-				event.Reason,
-			})
-		}
-	}()
-
-	var normWG sync.WaitGroup
-	for i := 0; i < 4; i++ {
-		normWG.Add(1)
-		go normalizerWorker(rawChan, normChan, auditChan, &normWG)
+	header, err := r.Read()
+	if err != nil {
+		return
 	}
 
-	var valWG sync.WaitGroup
-	for i := 0; i < 4; i++ {
-		valWG.Add(1)
-		go validatorWorker(normChan, validChan, auditChan, &valWG)
+	indexByHeader := make(map[string]int, len(header))
+	for idx, h := range header {
+		indexByHeader[canonicalHeader(h)] = idx
 	}
 
-	go deduplicator(validChan, finalChan, auditChan)
-
-	go func() {
-		for {
-			record, err := reader.Read()
-			if err != nil {
-				break
-			}
-
-			statsMutex.Lock()
-			totalRead++
-			statsMutex.Unlock()
-
-			rawChan <- Reclamo{
-				ID:              record[0],
-				Timestamp:       record[1],
-				UsuarioID:       record[2],
-				IPAddress:       record[3],
-				Empresa:         record[4],
-				Departamento:    record[5],
-				Servicio:        record[6],
-				MedioPresent:    record[7],
-				TipoQueja:       record[8],
-				TextoReclamo:    record[9],
-				IsSyntheticSpam: record[10],
-			}
+	for {
+		row, err := r.Read()
+		if err != nil {
+			break
 		}
 
-		close(rawChan)
-	}()
+		stats.mu.Lock()
+		stats.totalLeidos++
+		stats.mu.Unlock()
+
+		if len(row) < 13 {
+			stats.mu.Lock()
+			stats.filasCorruptas++
+			stats.mu.Unlock()
+			continue
+		}
+
+		rec := Record{
+			ODI:               getByHeader(row, indexByHeader, 0, "ODI"),
+			SiglasArea:        getByHeader(row, indexByHeader, 1, "SIGLAS_AREA"),
+			Anio:              getByHeader(row, indexByHeader, 2, "ANIO"),
+			NroExpediente:     getByHeader(row, indexByHeader, 3, "NRO_EXPEDIENTE"),
+			TipoExpediente:    getByHeader(row, indexByHeader, 4, "TIPO_EXPEDIENTE"),
+			FechaPresentacion: getByHeader(row, indexByHeader, 5, "FECHA_PRESENTACION"),
+			Sector:            getByHeader(row, indexByHeader, 6, "SECTOR"),
+			SubSector:         getByHeader(row, indexByHeader, 7, "SUB_SECTOR"),
+			Denunciados:       getByHeader(row, indexByHeader, 8, "DENUNCIADOS"),
+			RUC:               getByHeader(row, indexByHeader, 9, "RUC", "RUC_DENUNCIADOS"),
+			Texto:             getByHeader(row, indexByHeader, 10, "TEXTO", "TEXTO_RECLAMO"),
+			Timestamp:         getByHeader(row, indexByHeader, 11, "TIMESTAMP"),
+			IP:                getByHeader(row, indexByHeader, 12, "IP", "IP_ADDRESS"),
+		}
+
+		out <- rec
+	}
+
+	close(out)
+}
+
+// =====================
+// REPORTE TXT
+// =====================
+func generarReporte() {
+
+	file, _ := os.Create("../dataset/reporte_limpieza.txt")
+	defer file.Close()
+
+	file.WriteString("REPORTE DE LIMPIEZA\n")
+	file.WriteString("----------------------------\n")
+
+	file.WriteString(fmt.Sprintf("Total leídos: %d\n", stats.totalLeidos))
+	file.WriteString(fmt.Sprintf("Procesados: %d\n", stats.totalProcesados))
+	file.WriteString(fmt.Sprintf("Descartados: %d\n", stats.totalDescartados))
+	file.WriteString(fmt.Sprintf("Filas corruptas: %d\n", stats.filasCorruptas))
+	file.WriteString(fmt.Sprintf("Textos normalizados: %d\n", stats.textosNormalizados))
+	file.WriteString(fmt.Sprintf("Textos vacíos corregidos: %d\n\n", stats.textosVacios))
+
+	writeReasonBlock(file, "MOTIVOS DE RECHAZO (Definitivos):", &motivosRechazo)
+	writeReasonBlock(file, "ADVERTENCIAS (Procesa pero marca):", &advertencias)
+
+	porcentaje := float64(stats.totalDescartados) / float64(stats.totalLeidos) * 100
+	file.WriteString(fmt.Sprintf("\nPorcentaje descartado: %.2f%%\n", porcentaje))
+}
+
+// =====================
+// MAIN
+// =====================
+func main() {
+
+	start := time.Now()
+
+	rawChan := make(chan Record, 200)
+	normChan := make(chan Record, 200)
+	validChan := make(chan Record, 200)
+	rejectChan := make(chan RejectedRecord, 200)
+
+	done := make(chan bool)
+	doneReject := make(chan bool)
+
+	// Reader
+	go reader("../dataset/dataset_1M_raw.csv", rawChan)
+
+	// Normalizers
+	var wgNorm sync.WaitGroup
+	wgNorm.Add(4)
+
+	for i := 0; i < 4; i++ {
+		go func() {
+			defer wgNorm.Done()
+			normalizer(rawChan, normChan)
+		}()
+	}
 
 	go func() {
-		normWG.Wait()
+		wgNorm.Wait()
 		close(normChan)
 	}()
 
-	go func() {
-		valWG.Wait()
-		close(validChan)
-	}()
+	// Validators
+	var wgVal sync.WaitGroup
+	wgVal.Add(4)
 
-	cleanID := 1
-
-	for r := range finalChan {
-		writer.Write([]string{
-			fmt.Sprintf("%d", cleanID),
-			r.Timestamp,
-			r.UsuarioID,
-			r.IPAddress,
-			r.Empresa,
-			r.Departamento,
-			r.Servicio,
-			r.MedioPresent,
-			r.TipoQueja,
-			r.TextoReclamo,
-			r.IsSyntheticSpam,
-		})
-
-		cleanID++
-		totalClean++
+	for i := 0; i < 4; i++ {
+		go func() {
+			defer wgVal.Done()
+			validator(normChan, validChan, rejectChan)
+		}()
 	}
 
-	close(auditChan)
-	auditWG.Wait()
+	go func() {
+		wgVal.Wait()
+		close(validChan)
+		close(rejectChan)
+	}()
 
-	fmt.Println("\n===== Resumen de la limpieza =====")
-	fmt.Println("Total Read:", totalRead)
-	fmt.Println("Final Clean:", totalClean)
-	fmt.Println("Normalized Fields:", totalNormalized)
-	fmt.Println("Invalid IP Removed:", totalInvalidIP)
-	fmt.Println("Invalid Timestamp Removed:", totalInvalidTS)
-	fmt.Println("Missing Fields Removed:", totalMissingFields)
-	fmt.Println("Duplicates Removed:", totalDuplicates)
+	// Writers
+	go writer(validChan, done)
+	go rejectedWriter(rejectChan, doneReject)
+
+	<-done
+	<-doneReject
+
+	// Reporte
+	generarReporte()
+
+	fmt.Println("\n📊 REPORTE DE LIMPIEZA")
+	fmt.Println("-----------------------------")
+	fmt.Println("Total leídos:        ", stats.totalLeidos)
+	fmt.Println("Procesados:          ", stats.totalProcesados)
+	fmt.Println("Descartados:         ", stats.totalDescartados)
+	fmt.Println("Filas corruptas:     ", stats.filasCorruptas)
+	fmt.Println("Textos normalizados: ", stats.textosNormalizados)
+	fmt.Println("Textos vacíos:       ", stats.textosVacios)
+
+	fmt.Printf("Porcentaje descartado: %.2f%%\n",
+		float64(stats.totalDescartados)/float64(stats.totalLeidos)*100)
+
+	fmt.Println("\n⏱ Tiempo total:", time.Since(start))
+
+	fmt.Println("\n📁 Archivos generados:")
+	fmt.Println("- dataset_clean.csv")
+	fmt.Println("- rejected_records.csv")
+	fmt.Println("- reporte_limpieza.txt")
+
+	fmt.Println("\n✅ Limpieza completada")
 }
