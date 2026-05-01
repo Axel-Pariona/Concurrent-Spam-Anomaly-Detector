@@ -16,9 +16,7 @@ type Record struct {
 	IP   string
 }
 
-// =====================
 // FRECUENCIAS (con mutex)
-// =====================
 var textFreq = struct {
 	data map[string]int
 	mu   sync.Mutex
@@ -33,9 +31,7 @@ var ipFreq = struct {
 	data: make(map[string]int),
 }
 
-// =====================
 // HELPERS
-// =====================
 func allRunesEqual(s string) bool {
 	r := []rune(s)
 	if len(r) <= 1 {
@@ -49,9 +45,7 @@ func allRunesEqual(s string) bool {
 	return true
 }
 
-// =====================
 // WORKER FASE 1 (conteo)
-// =====================
 func counterWorker(in <-chan Record, wg *sync.WaitGroup) {
 	defer wg.Done()
 
@@ -67,9 +61,7 @@ func counterWorker(in <-chan Record, wg *sync.WaitGroup) {
 	}
 }
 
-// =====================
-// WORKER FASE 2 (clasificación)
-// =====================
+// WORKER FASE 2 
 func classifierWorker(
 	in <-chan Record,
 	clean chan<- []string,
@@ -105,9 +97,7 @@ func classifierWorker(
 	}
 }
 
-// =====================
 // MAIN
-// =====================
 func main() {
 
 	start := time.Now()
@@ -139,9 +129,7 @@ func main() {
 	cleanWriter.Write(header)
 	spamWriter.Write(header)
 
-	// =====================
 	// FASE 1: LECTURA + CONTEO
-	// =====================
 	recordChan := make(chan Record, 1000)
 
 	var wgCounter sync.WaitGroup
@@ -177,9 +165,7 @@ func main() {
 	close(recordChan)
 	wgCounter.Wait()
 
-	// =====================
 	// FASE 2: CLASIFICACIÓN
-	// =====================
 	classifyChan := make(chan Record, 1000)
 	cleanChan := make(chan []string, 1000)
 	spamChan := make(chan []string, 1000)
@@ -221,15 +207,14 @@ func main() {
 	close(spamChan)
 	wgWriter.Wait()
 
-	// =====================
 	// RESULTADOS
-	// =====================
-	fmt.Println("\n📊 DETECCIÓN DE SPAM (CONCURRENTE)")
+	
+	fmt.Println("\n DETECCIÓN DE SPAM (CONCURRENTE)")
 	fmt.Println("--------------------------------")
 	fmt.Println("Total registros:", len(allRecords))
 	fmt.Println("Tiempo:", time.Since(start))
 
-	fmt.Println("\n📁 Archivos generados:")
+	fmt.Println("\n Archivos generados:")
 	fmt.Println("- dataset_final_concurrent.csv")
 	fmt.Println("- spam_detected_concurrent.csv")
 
