@@ -101,7 +101,7 @@ func trimmedMeanFloat(values []float64) float64 {
 // =====================
 func main() {
 
-	runs := 5
+	runs := 10
 
 	var seqTimes []time.Duration
 	var concTimes []time.Duration
