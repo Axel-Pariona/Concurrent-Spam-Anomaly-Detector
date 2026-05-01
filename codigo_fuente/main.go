@@ -25,9 +25,7 @@ var palabrasInformativas = []string{
 	"DENUNCIA",
 }
 
-// =====================
 // ESTRUCTURAS
-// =====================
 type Record struct {
 	ODI               string
 	SiglasArea        string
@@ -51,9 +49,7 @@ type RejectedRecord struct {
 	Motivo        string
 }
 
-// =====================
 // MÉTRICAS
-// =====================
 var stats = struct {
 	totalLeidos        int
 	totalProcesados    int
@@ -79,9 +75,7 @@ var advertencias = struct {
 	data: make(map[string]int),
 }
 
-// =====================
 // HELPERS
-// =====================
 func safeGet(row []string, index int) string {
 	if index >= len(row) {
 		return ""
@@ -255,9 +249,7 @@ func classifyShortTextWarning(texto string) string {
 	return ""
 }
 
-// =====================
 // NORMALIZER
-// =====================
 func normalizer(in <-chan Record, out chan<- Record) {
 	for rec := range in {
 
@@ -286,9 +278,7 @@ func normalizer(in <-chan Record, out chan<- Record) {
 	}
 }
 
-// =====================
 // VALIDATOR
-// =====================
 func validator(in <-chan Record, out chan<- Record, reject chan<- RejectedRecord) {
 	for rec := range in {
 
@@ -296,7 +286,7 @@ func validator(in <-chan Record, out chan<- Record, reject chan<- RejectedRecord
 		ip := strings.TrimSpace(rec.IP)
 		palabras := len(strings.Fields(texto))
 
-		// 🔴 1. EXPEDIENTE OBLIGATORIO
+		//  1. EXPEDIENTE OBLIGATORIO
 		if strings.TrimSpace(rec.NroExpediente) == "" {
 			stats.mu.Lock()
 			stats.totalDescartados++
@@ -308,7 +298,7 @@ func validator(in <-chan Record, out chan<- Record, reject chan<- RejectedRecord
 			continue
 		}
 
-		// 🔴 2. TEXTO VACÍO REAL
+		//  2. TEXTO VACÍO REAL
 		if texto == "" || texto == "RECLAMO VACIO" {
 			stats.mu.Lock()
 			stats.totalDescartados++
@@ -319,8 +309,8 @@ func validator(in <-chan Record, out chan<- Record, reject chan<- RejectedRecord
 			reject <- RejectedRecord{rec.NroExpediente, rec.Texto, rec.IP, "TEXTO_VACIO"}
 			continue
 		}
-
-		// 🔴 3. TEXTO BASURA (REALMENTE INÚTIL)
+		
+		//  3. TEXTO BASURA (REALMENTE INÚTIL)
 		if palabras == 1 && len(texto) <= 3 {
 			stats.mu.Lock()
 			stats.totalDescartados++
@@ -332,12 +322,12 @@ func validator(in <-chan Record, out chan<- Record, reject chan<- RejectedRecord
 			continue
 		}
 
-		// 🟡 4. TEXTO CORTO: CLASIFICAR POR SEVERIDAD (NO DESCARTAR)
+		//  4. TEXTO CORTO: CLASIFICAR POR SEVERIDAD (NO DESCARTAR)
 		if shortWarning := classifyShortTextWarning(texto); shortWarning != "" {
 			incrementReason(&advertencias, shortWarning)
 		}
 
-		// 🔴 5. IP INVÁLIDA
+		//  5. IP INVÁLIDA
 		if ip == "" ||
 			ip == "IP_INVALIDA" ||
 			strings.Contains(ip, "999") ||
@@ -353,13 +343,13 @@ func validator(in <-chan Record, out chan<- Record, reject chan<- RejectedRecord
 			continue
 		}
 
-		// 🟡 6. TIMESTAMP VACÍO → CORREGIR
+		//  6. TIMESTAMP VACÍO → CORREGIR
 		if strings.TrimSpace(rec.Timestamp) == "" {
 			rec.Timestamp = "SIN_FECHA"
 			incrementReason(&advertencias, "TIMESTAMP_CORREGIDO")
 		}
 
-		// ✅ válido
+		//  válido
 		stats.mu.Lock()
 		stats.totalProcesados++
 		stats.mu.Unlock()
@@ -368,9 +358,7 @@ func validator(in <-chan Record, out chan<- Record, reject chan<- RejectedRecord
 	}
 }
 
-// =====================
 // WRITER CLEAN
-// =====================
 func writer(in <-chan Record, done chan<- bool) {
 
 	file, _ := os.Create("../dataset/dataset_clean.csv")
@@ -407,9 +395,7 @@ func writer(in <-chan Record, done chan<- bool) {
 	done <- true
 }
 
-// =====================
 // WRITER REJECTED
-// =====================
 func rejectedWriter(in <-chan RejectedRecord, done chan<- bool) {
 
 	file, _ := os.Create("../dataset/rejected_records.csv")
@@ -438,9 +424,7 @@ func rejectedWriter(in <-chan RejectedRecord, done chan<- bool) {
 	done <- true
 }
 
-// =====================
 // READER
-// =====================
 func reader(path string, out chan<- Record) {
 
 	file, err := os.Open(path)
@@ -501,9 +485,7 @@ func reader(path string, out chan<- Record) {
 	close(out)
 }
 
-// =====================
 // REPORTE TXT
-// =====================
 func generarReporte() {
 
 	file, _ := os.Create("../dataset/reporte_limpieza.txt")
@@ -526,9 +508,7 @@ func generarReporte() {
 	file.WriteString(fmt.Sprintf("\nPorcentaje descartado: %.2f%%\n", porcentaje))
 }
 
-// =====================
 // MAIN
-// =====================
 func main() {
 
 	start := time.Now()
@@ -587,7 +567,7 @@ func main() {
 	// Reporte
 	generarReporte()
 
-	fmt.Println("\n📊 REPORTE DE LIMPIEZA")
+	fmt.Println("\n REPORTE DE LIMPIEZA")
 	fmt.Println("-----------------------------")
 	fmt.Println("Total leídos:        ", stats.totalLeidos)
 	fmt.Println("Procesados:          ", stats.totalProcesados)
@@ -601,10 +581,9 @@ func main() {
 
 	fmt.Println("\n⏱ Tiempo total:", time.Since(start))
 
-	fmt.Println("\n📁 Archivos generados:")
+	fmt.Println("\n Archivos generados:")
 	fmt.Println("- dataset_clean.csv")
 	fmt.Println("- rejected_records.csv")
 	fmt.Println("- reporte_limpieza.txt")
 
-	fmt.Println("\n✅ Limpieza completada")
 }
