@@ -1,3 +1,7 @@
 dataset/dataset_1M_raw.csv
 dataset/dataset_clean.csv
-dataset/cleaning_report.csv
+dataset/rejected_records.csv
+dataset/reporte_limpieza.txt
+dataset/dataset_final.csv
+dataset/spam_detected.csv
+dataset/*.csv
