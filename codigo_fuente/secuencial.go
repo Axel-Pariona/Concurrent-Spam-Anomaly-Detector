@@ -94,17 +94,17 @@ func main() {
 
 		isSpam := false
 
-		// ✅ Regla 1: BOT (texto repetido + misma IP)
+		//  Regla 1: BOT (texto repetido + misma IP)
 		if textFreq[rec.Text] > 100 && ipFreq[rec.IP] > 20 {
 			isSpam = true
 		}
 
-		// ✅ Regla 2: IP abusiva
+		//  Regla 2: IP abusiva
 		if ipFreq[rec.IP] > 200 {
 			isSpam = true
 		}
 
-		// ✅ Regla 3: texto artificial
+		//  Regla 3: texto artificial
 		if allRunesEqual(rec.Text) && len(rec.Text) > 10 {
 			isSpam = true
 		}
@@ -119,14 +119,14 @@ func main() {
 	}
 
 	// Resultados
-	fmt.Println("\n📊 DETECCIÓN DE SPAM (SECUENCIAL)")
+	fmt.Println("\n DETECCIÓN DE SPAM (SECUENCIAL)")
 	fmt.Println("--------------------------------")
 	fmt.Println("Total registros:", total)
 	fmt.Println("Spam detectado:", spamCount)
 	fmt.Println("Registros válidos:", cleanCount)
 	fmt.Println("Tiempo:", time.Since(start))
 
-	fmt.Println("\n📁 Archivos generados:")
+	fmt.Println("\n Archivos generados:")
 	fmt.Println("- dataset_final.csv")
 	fmt.Println("- spam_detected.csv")
 
