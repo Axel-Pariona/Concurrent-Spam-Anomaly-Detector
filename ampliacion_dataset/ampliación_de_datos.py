@@ -862,10 +862,6 @@ def main():
 
         df_chunk = pd.DataFrame(chunk)
 
-        # =================================
-        # WRITE CSV
-        # =================================
-
         if first_chunk:
 
             df_chunk.to_csv(
@@ -985,11 +981,6 @@ def main():
 
     print(f"Archivo: {OUTPUT_FILE}")
     print(f"Resumen: {SUMMARY_FILE}")
-
-
-# =========================================================
-# ENTRYPOINT
-# =========================================================
 
 if __name__ == "__main__":
     main()
