@@ -10,11 +10,25 @@ import pandas as pd
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-INPUT_FILE = os.path.join(BASE_DIR, "../dataset/dataset_base.csv")
-OUTPUT_FILE = os.path.join(BASE_DIR, "../dataset/dataset_1M_raw.csv")
+INPUT_FILE = os.path.join(
+    BASE_DIR,
+    "../dataset/dataset_base.csv",
+)
 
-LOGS_DIR = os.path.join(BASE_DIR, "logs")
-SUMMARY_FILE = os.path.join(LOGS_DIR, "generation_summary.txt")
+OUTPUT_FILE = os.path.join(
+    BASE_DIR,
+    "../dataset/dataset_1M_raw.csv",
+)
+
+LOGS_DIR = os.path.join(
+    BASE_DIR,
+    "logs",
+)
+
+SUMMARY_FILE = os.path.join(
+    LOGS_DIR,
+    "generation_summary.txt",
+)
 
 TARGET_SIZE = 1_700_000
 CHUNK_SIZE = 50_000
@@ -64,6 +78,22 @@ CATEGORIAS = (
 )
 
 # =========================================================
+# CONECTORES
+# =========================================================
+
+CONECTORES = (
+    "porque",
+    "además",
+    "sin embargo",
+    "por eso",
+    "aunque",
+    "pero",
+    "entonces",
+    "debido a que",
+    "por lo tanto",
+)
+
+# =========================================================
 # RECLAMOS LEGÍTIMOS
 # =========================================================
 
@@ -84,110 +114,114 @@ RECLAMOS_LEGITIMOS = {
             "en mi cuenta",
         ],
         "contexto": [
-            "No encuentro justificación para este cargo.",
-            "Contraté por otro monto y no debería aparecer.",
-            "Revisé mi historial y esto no corresponde.",
-            "Esto no estaba en la publicidad del servicio.",
-            "No autorizo este cobro.",
+            "No encuentro justificación para este cargo",
+            "Contraté por otro monto",
+            "Revisé mi historial",
+            "Esto no corresponde",
+            "No autorizo este cobro",
         ],
         "resolucion": [
-            "Necesito que revisen el cargo.",
-            "Solicito una aclaración del cobro.",
-            "Quiero que devuelvan este monto.",
-            "Requiero explicación de este cargo.",
-            "Pido que corrijan la facturación.",
+            "Necesito que revisen el cargo",
+            "Solicito una aclaración",
+            "Quiero devolución del dinero",
+            "Requiero explicación",
+            "Pido corregir la facturación",
         ],
     },
+
     "delivery": {
         "problemas": [
             "El paquete nunca llegó",
             "Mi pedido llegó tarde",
             "El producto llegó dañado",
-            "El envío fue rechazado sin motivo",
-            "El producto no es lo que pedí",
+            "El envío fue rechazado",
+            "El producto no coincide",
         ],
         "detalles": [
             "hace más de una semana",
             "según el plazo acordado",
             "con golpes en la caja",
             "sin respuesta de la empresa",
-            "los pormenores no coinciden",
+            "con información incorrecta",
         ],
         "contexto": [
-            "Necesitaba el producto en esa fecha.",
-            "Pagué por envío garantizado.",
-            "No es la primera vez que pasa.",
-            "El tracking no se actualiza.",
-            "Ya envié múltiples reclamaciones.",
+            "Necesitaba el producto en esa fecha",
+            "Pagué por envío garantizado",
+            "No es la primera vez",
+            "El tracking no se actualiza",
+            "Ya envié varias reclamaciones",
         ],
         "resolucion": [
-            "Quiero que reenvíen el producto.",
-            "Solicito reembolso completo.",
-            "Necesito un cambio urgente.",
-            "Exijo seguimiento del reclamo.",
-            "Pido compensación por los daños.",
+            "Solicito reembolso completo",
+            "Necesito un cambio urgente",
+            "Exijo seguimiento del reclamo",
+            "Pido compensación",
+            "Quiero una solución inmediata",
         ],
     },
+
     "garantia": {
         "problemas": [
             "El producto falla constantemente",
             "El defecto es de fábrica",
             "No respetan la cobertura",
             "Rechazaron mi garantía",
-            "El producto sigue roto después de reparación",
+            "El producto sigue roto",
         ],
         "detalles": [
             "aunque está dentro del plazo",
             "según el certificado",
             "sin explicación válida",
-            "a pesar de tener comprobante",
+            "a pesar del comprobante",
             "más de una vez",
         ],
         "contexto": [
-            "Compré hace poco y ya no funciona.",
-            "Tengo el recibo original.",
-            "Esto fue defecto desde la compra.",
-            "No fue culpa mía.",
-            "Otros clientes reportan lo mismo.",
+            "Compré hace poco",
+            "Tengo el recibo original",
+            "Esto ocurrió desde la compra",
+            "No fue culpa mía",
+            "Otros clientes reportan lo mismo",
         ],
         "resolucion": [
-            "Exijo una reparación en garantía.",
-            "Quiero un producto nuevo.",
-            "Necesito que honren la garantía.",
-            "Solicito devolución del dinero.",
-            "Pido compensación por inconvenientes.",
+            "Exijo reparación inmediata",
+            "Necesito garantía válida",
+            "Solicito devolución del dinero",
+            "Pido compensación",
+            "Quiero un producto nuevo",
         ],
     },
+
     "atencion_cliente": {
         "problemas": [
-            "No me atienden en el teléfono",
-            "Llevo semanas esperando respuesta",
+            "No me atienden",
+            "Llevo semanas esperando",
             "El personal fue grosero",
             "No resuelven mi problema",
-            "Me transfieren sin solucionar nada",
+            "Me transfieren constantemente",
         ],
         "detalles": [
             "cada vez que llamo",
             "desde hace días",
             "sin justificación",
             "a pesar de mis intentos",
-            "en múltiples oportunidades",
+            "en múltiples ocasiones",
         ],
         "contexto": [
-            "Necesito ayuda y nadie me atiende.",
-            "He intentado comunicarme varias veces.",
-            "Otros clientes tienen el mismo problema.",
-            "El chat tampoco responde.",
-            "Es frustrante la falta de atención.",
+            "Necesito ayuda urgente",
+            "He llamado varias veces",
+            "Otros clientes tienen el mismo problema",
+            "El chat tampoco responde",
+            "La atención es deficiente",
         ],
         "resolucion": [
-            "Pido que me atiendan adecuadamente.",
-            "Necesito hablar con un supervisor.",
-            "Solicito compensación por la demora.",
-            "Exijo una respuesta formal.",
-            "Requiero seguimiento personalizado.",
+            "Solicito atención inmediata",
+            "Necesito hablar con un supervisor",
+            "Exijo respuesta formal",
+            "Requiero seguimiento",
+            "Pido solución urgente",
         ],
     },
+
     "servicios": {
         "problemas": [
             "La velocidad de internet es muy baja",
@@ -199,25 +233,26 @@ RECLAMOS_LEGITIMOS = {
         "detalles": [
             "mucho menor a lo contratado",
             "todos los días",
-            "sin interrupciones",
             "según la publicidad",
+            "sin solución",
             "en mi zona",
         ],
         "contexto": [
-            "Mido la velocidad y no coincide.",
-            "Afecta mis actividades diarias.",
-            "Pago por servicio premium.",
-            "Esto lleva semanas pasando.",
-            "No es la primera queja.",
+            "Afecta mis actividades",
+            "Pago por servicio premium",
+            "Esto lleva semanas",
+            "No es la primera queja",
+            "Necesito estabilidad",
         ],
         "resolucion": [
-            "Pido cambiar a otro plan.",
-            "Necesito que mejoren la velocidad.",
-            "Quiero descuento por mala calidad.",
-            "Solicito devolución de pagos.",
-            "Exijo mejor servicio.",
+            "Solicito devolución",
+            "Necesito mejorar el servicio",
+            "Quiero descuento",
+            "Exijo solución",
+            "Pido cambio de plan",
         ],
     },
+
     "banca": {
         "problemas": [
             "Hubo un cargo no autorizado",
@@ -228,24 +263,24 @@ RECLAMOS_LEGITIMOS = {
         ],
         "detalles": [
             "en mi cuenta bancaria",
-            "en el estado de cuenta",
             "sin explicación",
+            "en el estado de cuenta",
             "de empresas desconocidas",
             "no registrados por mí",
         ],
         "contexto": [
-            "No autorizo esos movimientos.",
-            "Esto afecta mi seguridad.",
-            "Necesito proteger mi cuenta.",
-            "Temo que hayan comprometido mi información.",
-            "Es prioritario resolver esto.",
+            "No autorizo esos movimientos",
+            "Esto afecta mi seguridad",
+            "Necesito proteger mi cuenta",
+            "Temo fraude",
+            "Es prioritario resolver esto",
         ],
         "resolucion": [
-            "Necesito que revisen la transacción.",
-            "Solicito devolución inmediata.",
-            "Pido bloqueo de la cuenta.",
-            "Exijo investigación de fraude.",
-            "Requiero cambio de contraseña.",
+            "Solicito devolución inmediata",
+            "Pido bloqueo de la cuenta",
+            "Exijo investigación",
+            "Necesito revisión urgente",
+            "Requiero cambio de contraseña",
         ],
     },
 }
@@ -270,12 +305,15 @@ SPAM_FRASES_URGENCIA = (
     "PRIORITARIO",
 )
 
-SPAM_FRASES_GENERICAS = (
-    "NO RESPONDEN",
-    "NECESITO SOLUCION",
-    "RECLAMO NO RESUELTO",
-    "ESTAFA",
-    "COBRO INDEBIDO",
+SPAM_FRAGMENTOS = (
+    "quiero respuesta ya",
+    "solucion urgente",
+    "nadie responde",
+    "esto es una estafa",
+    "respuesta inmediata",
+    "haz click ahora",
+    "gana dinero rapido",
+    "premio disponible",
 )
 
 # =========================================================
@@ -302,13 +340,15 @@ PALABRAS_RUIDO = (
 # HELPERS
 # =========================================================
 
-
 def generar_usuario():
     return f"USR{ri(1, NUM_USUARIOS_POOL):06d}"
 
 
 def generar_ip():
-    return ".".join(str(ri(1, 254)) for _ in range(4))
+    return ".".join(
+        str(ri(1, 254))
+        for _ in range(4)
+    )
 
 
 def generar_ip_invalida():
@@ -331,6 +371,7 @@ def generar_timestamp_invalido():
 
 
 def variar_timestamp(ts):
+
     if pd.isna(ts):
         return ts
 
@@ -344,6 +385,15 @@ def variar_timestamp(ts):
 # =========================================================
 # TEXTO
 # =========================================================
+
+def insertar_conector(oracion1, oracion2):
+
+    return (
+        f"{oracion1} "
+        f"{rc(CONECTORES)} "
+        f"{oracion2}"
+    )
+
 
 def aplicar_variacion_casos(texto):
 
@@ -374,10 +424,16 @@ def aplicar_variacion_casos(texto):
         if rr() < 0.3:
             resto = resto.lower()
 
-        resultado.append(primera + resto)
+        resultado.append(
+            primera + resto
+        )
 
     return ". ".join(resultado)
 
+
+# =========================================================
+# RECLAMO LEGITIMO
+# =========================================================
 
 def generar_reclamo_legitimo():
 
@@ -385,37 +441,63 @@ def generar_reclamo_legitimo():
 
     plantilla = RECLAMOS_LEGITIMOS[categoria]
 
-    texto = (
+    p1 = (
         f"{rc(plantilla['problemas'])} "
-        f"{rc(plantilla['detalles'])}. "
-        f"{rc(plantilla['contexto'])} "
-        f"{rc(plantilla['resolucion'])}"
+        f"{rc(plantilla['detalles'])}"
+    )
+
+    p2 = rc(plantilla["contexto"])
+
+    p3 = rc(plantilla["resolucion"])
+
+    texto = (
+        insertar_conector(p1, p2)
+        + ". "
+        + insertar_conector(p2, p3)
     )
 
     return aplicar_variacion_casos(texto)
 
+
+# =========================================================
+# TEXTO INCOHERENTE
+# =========================================================
 
 def generar_texto_incoherente():
 
     tipo = ri(1, 4)
 
     if tipo == 1:
+
         return " ".join(
             rc(PALABRAS_RUIDO)
             for _ in range(ri(4, 8))
         )
 
     if tipo == 2:
+
         return " ".join(
             rc(PALABRAS_RUIDO)
             for _ in range(ri(8, 15))
         )
 
     if tipo == 3:
-        return f"{rc(PALABRAS_RUIDO)} ... {rc(PALABRAS_RUIDO)}"
 
-    return f"{rc(PALABRAS_RUIDO)} {rc(PALABRAS_RUIDO)}"
+        return (
+            f"{rc(PALABRAS_RUIDO)} "
+            f"... "
+            f"{rc(PALABRAS_RUIDO)}"
+        )
 
+    return (
+        f"{rc(PALABRAS_RUIDO)} "
+        f"{rc(PALABRAS_RUIDO)}"
+    )
+
+
+# =========================================================
+# TEXTO GENERAL
+# =========================================================
 
 def generar_texto():
 
@@ -424,6 +506,10 @@ def generar_texto():
 
     return generar_reclamo_legitimo()
 
+
+# =========================================================
+# VARIACION LEGITIMA
+# =========================================================
 
 def generar_variacion_legitima(texto):
 
@@ -443,39 +529,42 @@ def generar_variacion_legitima(texto):
 
 
 # =========================================================
-# FEATURES
+# FEATURES NLP
 # =========================================================
 
 def calcular_caps_ratio(texto):
 
-    letras = [c for c in texto if c.isalpha()]
+    letras = [
+        c
+        for c in texto
+        if c.isalpha()
+    ]
 
     if not letras:
         return 0.0
 
-    mayus = sum(1 for c in letras if c.isupper())
+    mayus = sum(
+        1
+        for c in letras
+        if c.isupper()
+    )
 
     return mayus / len(letras)
 
 
 def calcular_coherencia_basica(texto):
 
-    palabras = texto.split()
+    palabras = texto.lower().split()
 
-    if len(palabras) < 3:
+    if len(palabras) < 5:
         return False
 
-    if len(texto) < 15:
-        return False
-
-    validas = sum(
-        1
-        for p in palabras
-        if p.lower().strip(STRIP_CHARS)
-        not in PALABRAS_RUIDO
+    tiene_conector = any(
+        c in texto.lower()
+        for c in CONECTORES
     )
 
-    return validas >= 2
+    return tiene_conector
 
 
 # =========================================================
@@ -486,70 +575,55 @@ def generar_spam_robotizado():
 
     tipo = rc(TIPOS_SPAM)
 
-    urg = rc(SPAM_FRASES_URGENCIA)
-    gen = rc(SPAM_FRASES_GENERICAS)
-
     if tipo == "urgencia":
 
         texto = (
-            f"{urg}! {gen}. "
-            f"{urg} SOLUCION INMEDIATA."
+            f"{rc(SPAM_FRASES_URGENCIA)} "
+            f"{rc(SPAM_FRAGMENTOS)} "
+            f"{rc(SPAM_FRASES_URGENCIA)}"
         )
 
     elif tipo == "repetitivo":
 
         palabra = rc((
-            "SOLUCION",
-            "RESPUESTA",
-            "ESTAFA",
             "URGENTE",
+            "ESTAFA",
+            "SOLUCION",
         ))
 
         texto = " ".join(
             palabra
-            for _ in range(ri(4, 10))
+            for _ in range(ri(5, 10))
         )
 
     elif tipo == "flood":
 
-        frases = (
-            "NO RESPONDEN",
-            "QUIERO RESPUESTA",
-            "ESTAFA",
-            "COBRO INDEBIDO",
-        )
-
         texto = ". ".join(
-            rc(frases)
+            rc(SPAM_FRAGMENTOS)
             for _ in range(ri(5, 10))
         )
 
     elif tipo == "promocional":
 
-        promos = (
-            "GANA DINERO RAPIDO",
-            "OFERTA LIMITADA",
-            "HAZ CLICK",
-            "PREMIO DISPONIBLE",
+        texto = (
+            "GANA DINERO AHORA. "
+            "CLICK AQUI. "
+            "PREMIO DISPONIBLE."
         )
-
-        texto = f"{rc(promos)}. {rc(promos)}."
 
     else:
 
-        textos = (
-            "Necesito ayuda urgente porque nadie responde.",
-            "Ya envié varios mensajes y sigo sin solución.",
-            "El problema continúa sin respuesta.",
+        texto = (
+            f"{rc(SPAM_FRAGMENTOS)} "
+            f"{rc(CONECTORES)} "
+            f"{rc(SPAM_FRAGMENTOS)}"
         )
-
-        texto = rc(textos)
 
     return aplicar_variacion_casos(texto), tipo
 
 
 # =========================================================
-# GENERACIÓN REGISTRO
+# REGISTRO
 # =========================================================
 
 def generar_registro(base_row, record_id):
@@ -566,13 +640,15 @@ def generar_registro(base_row, record_id):
 
     registro["tipo_duplicado"] = "nuevo"
 
-    # =========================================
+    # =====================================
     # SPAM
-    # =========================================
+    # =====================================
 
     if rr() < SPAM_PERCENT:
 
-        texto_spam, tipo_spam = generar_spam_robotizado()
+        texto_spam, tipo_spam = (
+            generar_spam_robotizado()
+        )
 
         registro["texto_reclamo"] = texto_spam
         registro["spam_tipo"] = tipo_spam
@@ -589,51 +665,67 @@ def generar_registro(base_row, record_id):
         registro["spam_tipo"] = None
         registro["is_synthetic_spam"] = 0
 
-    # =========================================
+    # =====================================
     # DUPLICADOS
-    # =========================================
+    # =====================================
 
     if rr() < DUPLICATE_PERCENT:
-        registro["tipo_duplicado"] = "duplicado_exacto"
+
+        registro["tipo_duplicado"] = (
+            "duplicado_exacto"
+        )
 
     elif rr() < VARIATION_PERCENT:
-        registro["tipo_duplicado"] = "variacion"
 
-    # =========================================
+        registro["tipo_duplicado"] = (
+            "variacion"
+        )
+
+    # =====================================
     # INVALID DATA
-    # =========================================
+    # =====================================
 
     if rr() < INVALID_IP_PERCENT:
-        registro["ip_address"] = generar_ip_invalida()
+        registro["ip_address"] = (
+            generar_ip_invalida()
+        )
 
     if rr() < INVALID_TIMESTAMP_PERCENT:
-        registro["timestamp"] = generar_timestamp_invalido()
+        registro["timestamp"] = (
+            generar_timestamp_invalido()
+        )
 
     if rr() < EMPTY_FIELD_PERCENT:
         registro["usuario_id"] = ""
 
-    # =========================================
+    # =====================================
     # FEATURES
-    # =========================================
+    # =====================================
 
     texto_final = registro["texto_reclamo"]
 
-    registro["caps_ratio_original"] = calcular_caps_ratio(
-        texto_final
+    registro["caps_ratio_original"] = (
+        calcular_caps_ratio(texto_final)
     )
 
-    registro["tiene_coherencia"] = calcular_coherencia_basica(
-        texto_final
+    registro["tiene_coherencia"] = (
+        calcular_coherencia_basica(
+            texto_final
+        )
     )
 
     return registro
 
 
 # =========================================================
-# CHUNK GENERATOR
+# GENERAR CHUNK
 # =========================================================
 
-def generar_chunk(base_records, chunk_size, start_id):
+def generar_chunk(
+    base_records,
+    chunk_size,
+    start_id,
+):
 
     chunk = []
 
@@ -643,7 +735,10 @@ def generar_chunk(base_records, chunk_size, start_id):
 
         base = rc(base_records)
 
-        registro = generar_registro(base, current_id)
+        registro = generar_registro(
+            base,
+            current_id,
+        )
 
         chunk.append(registro)
 
@@ -669,15 +764,19 @@ def main():
         engine="python",
     )
 
-    df = df.loc[:, df.columns.str.strip() != ""]
+    df = df.loc[
+        :,
+        df.columns.str.strip() != ""
+    ]
+
     df.columns = df.columns.str.strip()
 
     print("Columnas detectadas:")
     print(df.columns.tolist())
 
-    # =========================================
+    # =====================================
     # TIMESTAMP
-    # =========================================
+    # =====================================
 
     if "timestamp" not in df.columns:
 
@@ -694,9 +793,9 @@ def main():
             errors="coerce",
         )
 
-    # =========================================
+    # =====================================
     # CAMPOS DEFAULT
-    # =========================================
+    # =====================================
 
     if "texto_reclamo" not in df.columns:
         df["texto_reclamo"] = ""
@@ -707,13 +806,16 @@ def main():
     if "ip_address" not in df.columns:
         df["ip_address"] = ""
 
-    # =========================================
-    # RECORDS BASE
-    # =========================================
+    # =====================================
+    # BASE RECORDS
+    # =====================================
 
     base_records = df.to_dict("records")
 
-    print(f"Base cargada: {len(base_records):,}")
+    print(
+        f"Base cargada: "
+        f"{len(base_records):,}"
+    )
 
     total_generados = 0
     next_id = 1
@@ -723,15 +825,21 @@ def main():
     spam_count = 0
     legit_count = 0
 
-    # =========================================
-    # GENERACIÓN
-    # =========================================
+    # =====================================
+    # GENERACION
+    # =====================================
 
     while total_generados < TARGET_SIZE:
 
-        restante = TARGET_SIZE - total_generados
+        restante = (
+            TARGET_SIZE
+            - total_generados
+        )
 
-        chunk_size = min(CHUNK_SIZE, restante)
+        chunk_size = min(
+            CHUNK_SIZE,
+            restante,
+        )
 
         chunk, next_id = generar_chunk(
             base_records,
@@ -739,22 +847,24 @@ def main():
             next_id,
         )
 
-        # métricas
         spam_chunk = sum(
             r["is_synthetic_spam"]
             for r in chunk
         )
 
-        legit_chunk = chunk_size - spam_chunk
+        legit_chunk = (
+            chunk_size
+            - spam_chunk
+        )
 
         spam_count += spam_chunk
         legit_count += legit_chunk
 
         df_chunk = pd.DataFrame(chunk)
 
-        # =====================================
+        # =================================
         # WRITE CSV
-        # =====================================
+        # =================================
 
         if first_chunk:
 
@@ -779,48 +889,95 @@ def main():
 
         print(
             f"[OK] "
-            f"{total_generados:,}/{TARGET_SIZE:,}"
+            f"{total_generados:,}/"
+            f"{TARGET_SIZE:,}"
         )
 
         del chunk
         del df_chunk
 
-    # =====================================================
+    # =====================================
     # SUMMARY
-    # =====================================================
+    # =====================================
 
     total = total_generados
 
-    spam_pct = (spam_count / total) * 100
-    legit_pct = (legit_count / total) * 100
+    spam_pct = (
+        spam_count / total
+    ) * 100
 
-    with open(SUMMARY_FILE, "w", encoding="utf-8") as f:
+    legit_pct = (
+        legit_count / total
+    ) * 100
 
-        f.write("DATASET GENERATION SUMMARY\n")
-        f.write("==========================\n\n")
+    with open(
+        SUMMARY_FILE,
+        "w",
+        encoding="utf-8",
+    ) as f:
 
-        f.write(f"OUTPUT_FILE: {OUTPUT_FILE}\n")
-        f.write(f"TOTAL_RECORDS: {total:,}\n")
+        f.write(
+            "DATASET GENERATION SUMMARY\n"
+        )
+
+        f.write(
+            "==========================\n\n"
+        )
+
+        f.write(
+            f"OUTPUT_FILE: "
+            f"{OUTPUT_FILE}\n"
+        )
+
+        f.write(
+            f"TOTAL_RECORDS: "
+            f"{total:,}\n"
+        )
 
         f.write(
             f"SPAM_RECORDS: "
-            f"{spam_count:,} ({spam_pct:.2f}%)\n"
+            f"{spam_count:,} "
+            f"({spam_pct:.2f}%)\n"
         )
 
         f.write(
             f"LEGITIMATE_RECORDS: "
-            f"{legit_count:,} ({legit_pct:.2f}%)\n"
+            f"{legit_count:,} "
+            f"({legit_pct:.2f}%)\n"
         )
 
         f.write("\nPARAMETERS\n")
         f.write("----------\n")
 
-        f.write(f"TARGET_SIZE={TARGET_SIZE}\n")
-        f.write(f"CHUNK_SIZE={CHUNK_SIZE}\n")
-        f.write(f"SPAM_PERCENT={SPAM_PERCENT}\n")
-        f.write(f"DIRTY_PERCENT={DIRTY_PERCENT}\n")
-        f.write(f"NOISE_PERCENT={NOISE_PERCENT}\n")
-        f.write(f"DUPLICATE_PERCENT={DUPLICATE_PERCENT}\n")
+        f.write(
+            f"TARGET_SIZE="
+            f"{TARGET_SIZE}\n"
+        )
+
+        f.write(
+            f"CHUNK_SIZE="
+            f"{CHUNK_SIZE}\n"
+        )
+
+        f.write(
+            f"SPAM_PERCENT="
+            f"{SPAM_PERCENT}\n"
+        )
+
+        f.write(
+            f"DIRTY_PERCENT="
+            f"{DIRTY_PERCENT}\n"
+        )
+
+        f.write(
+            f"NOISE_PERCENT="
+            f"{NOISE_PERCENT}\n"
+        )
+
+        f.write(
+            f"DUPLICATE_PERCENT="
+            f"{DUPLICATE_PERCENT}\n"
+        )
 
     print("\n===================================")
     print("DATASET GENERADO CORRECTAMENTE")

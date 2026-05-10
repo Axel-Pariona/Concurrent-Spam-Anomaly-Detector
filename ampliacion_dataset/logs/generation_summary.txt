@@ -3,8 +3,8 @@ DATASET GENERATION SUMMARY
 
 OUTPUT_FILE: c:\Users\yamir\Desktop\Trabajo concurrente\Detector-de-Spam---Programaci-n-concurrente-y-distribuida\ampliacion_dataset\../dataset/dataset_1M_raw.csv
 TOTAL_RECORDS: 1,700,000
-SPAM_RECORDS: 33,933 (2.00%)
-LEGITIMATE_RECORDS: 1,666,067 (98.00%)
+SPAM_RECORDS: 34,049 (2.00%)
+LEGITIMATE_RECORDS: 1,665,951 (98.00%)
 
 PARAMETERS
 ----------

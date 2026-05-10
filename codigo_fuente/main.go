@@ -10,6 +10,10 @@ import (
 	"time"
 )
 
+// =====================================
+// COLUMNAS DEL DATASET ORIGINAL
+// =====================================
+
 const (
 	COL_TIMESTAMP = 10
 	COL_TEXTO     = 11
@@ -18,12 +22,18 @@ const (
 	COL_ID        = 14
 )
 
+// =====================================
+// ESTRUCTURAS
+// =====================================
+
 type Record struct {
 	IDReclamo string
 	UsuarioID string
 	IP        string
 	Timestamp string
-	Texto     string
+
+	TextoOriginal string
+	TextoLimpio   string
 }
 
 type RejectedRecord struct {
@@ -31,9 +41,9 @@ type RejectedRecord struct {
 	Motivo string
 }
 
-// =========================
-// MÉTRICAS GLOBALES
-// =========================
+// =====================================
+// METRICAS GLOBALES
+// =====================================
 
 var stats = struct {
 	totalLeidos      int
@@ -44,19 +54,64 @@ var stats = struct {
 	mu               sync.Mutex
 }{}
 
-// =========================
-// HELPERS
-// =========================
+// =====================================
+// HELPER METRICAS
+// =====================================
 
 func increment(field *int) {
+
 	stats.mu.Lock()
 	*field++
 	stats.mu.Unlock()
 }
 
-// =========================
+// =====================================
+// HELPERS NLP SIMPLE
+// =====================================
+
+func demasiadosSimbolos(text string) bool {
+
+	count := 0
+
+	for _, c := range text {
+
+		if strings.ContainsRune("!@#$%^&*........", c) {
+			count++
+		}
+	}
+
+	return count > 8
+}
+
+func demasiadasRepeticiones(text string) bool {
+
+	words := strings.Fields(
+		strings.ToUpper(text),
+	)
+
+	if len(words) < 4 {
+		return false
+	}
+
+	freq := make(map[string]int)
+
+	for _, w := range words {
+		freq[w]++
+	}
+
+	for _, v := range freq {
+
+		if v >= 4 {
+			return true
+		}
+	}
+
+	return false
+}
+
+// =====================================
 // READER
-// =========================
+// =====================================
 
 func reader(path string, out chan<- Record) {
 
@@ -64,12 +119,13 @@ func reader(path string, out chan<- Record) {
 	if err != nil {
 		panic(err)
 	}
+
 	defer file.Close()
 
 	r := csv.NewReader(file)
 	r.FieldsPerRecord = -1
 
-	// Leer cabecera
+	// Saltar header
 	_, err = r.Read()
 	if err != nil {
 		panic(err)
@@ -78,6 +134,7 @@ func reader(path string, out chan<- Record) {
 	for {
 
 		row, err := r.Read()
+
 		if err != nil {
 			break
 		}
@@ -94,7 +151,8 @@ func reader(path string, out chan<- Record) {
 			UsuarioID: row[COL_USUARIO],
 			IP:        row[COL_IP],
 			Timestamp: row[COL_TIMESTAMP],
-			Texto:     row[COL_TEXTO],
+
+			TextoOriginal: row[COL_TEXTO],
 		}
 
 		out <- rec
@@ -103,29 +161,49 @@ func reader(path string, out chan<- Record) {
 	close(out)
 }
 
-// =========================
+// =====================================
 // NORMALIZER
-// =========================
+// =====================================
 
-func normalizer(in <-chan Record, out chan<- Record) {
+func normalizer(
+	in <-chan Record,
+	out chan<- Record,
+) {
 
 	for rec := range in {
 
-		original := rec.Texto
+		original := rec.TextoOriginal
 
-		// Limpiar texto
-		rec.Texto = strings.ToUpper(rec.Texto)
-		rec.Texto = strings.TrimSpace(rec.Texto)
-		rec.Texto = strings.Join(strings.Fields(rec.Texto), " ")
+		// =============================
+		// NORMALIZACION
+		// =============================
 
-		// Contar cambios
-		if rec.Texto != original {
+		texto := strings.TrimSpace(original)
+
+		// eliminar espacios dobles
+		texto = strings.Join(
+			strings.Fields(texto),
+			" ",
+		)
+
+		rec.TextoLimpio = texto
+
+		// =============================
+		// METRICAS
+		// =============================
+
+		if texto != original {
 			increment(&stats.textosLimpiados)
 		}
 
-		// Texto vacío
-		if rec.Texto == "" || rec.Texto == "-" {
-			rec.Texto = "RECLAMO VACIO"
+		// =============================
+		// TEXTO VACIO
+		// =============================
+
+		if texto == "" || texto == "-" {
+
+			rec.TextoLimpio = "RECLAMO VACIO"
+
 			increment(&stats.textosVacios)
 		}
 
@@ -133,9 +211,9 @@ func normalizer(in <-chan Record, out chan<- Record) {
 	}
 }
 
-// =========================
+// =====================================
 // VALIDATOR
-// =========================
+// =====================================
 
 func validator(
 	in <-chan Record,
@@ -145,8 +223,11 @@ func validator(
 
 	for rec := range in {
 
-		// Texto vacío
-		if rec.Texto == "RECLAMO VACIO" {
+		// =================================
+		// TEXTO VACIO
+		// =================================
+
+		if rec.TextoLimpio == "RECLAMO VACIO" {
 
 			increment(&stats.totalDescartados)
 
@@ -158,7 +239,58 @@ func validator(
 			continue
 		}
 
-		// Validar IP
+		// =================================
+		// TEXTO MUY CORTO
+		// =================================
+
+		if len(strings.Fields(rec.TextoLimpio)) < 3 {
+
+			increment(&stats.totalDescartados)
+
+			reject <- RejectedRecord{
+				Record: rec,
+				Motivo: "TEXTO_MUY_CORTO",
+			}
+
+			continue
+		}
+
+		// =================================
+		// EXCESO DE SIMBOLOS
+		// =================================
+
+		if demasiadosSimbolos(rec.TextoLimpio) {
+
+			increment(&stats.totalDescartados)
+
+			reject <- RejectedRecord{
+				Record: rec,
+				Motivo: "EXCESO_SIMBOLOS",
+			}
+
+			continue
+		}
+
+		// =================================
+		// REPETICION EXCESIVA
+		// =================================
+
+		if demasiadasRepeticiones(rec.TextoLimpio) {
+
+			increment(&stats.totalDescartados)
+
+			reject <- RejectedRecord{
+				Record: rec,
+				Motivo: "REPETICION_EXCESIVA",
+			}
+
+			continue
+		}
+
+		// =================================
+		// VALIDAR IP
+		// =================================
+
 		if net.ParseIP(rec.IP) == nil {
 
 			increment(&stats.totalDescartados)
@@ -171,10 +303,17 @@ func validator(
 			continue
 		}
 
-		// Timestamp vacío
+		// =================================
+		// TIMESTAMP VACIO
+		// =================================
+
 		if strings.TrimSpace(rec.Timestamp) == "" {
 			rec.Timestamp = "SIN_FECHA"
 		}
+
+		// =================================
+		// REGISTRO VALIDO
+		// =================================
 
 		increment(&stats.totalProcesados)
 
@@ -182,22 +321,30 @@ func validator(
 	}
 }
 
-// =========================
+// =====================================
 // WRITER CLEAN
-// =========================
+// =====================================
 
-func writer(path string, in <-chan Record, done chan<- bool) {
+func writer(
+	path string,
+	in <-chan Record,
+	done chan<- bool,
+) {
 
 	file, err := os.Create(path)
 	if err != nil {
 		panic(err)
 	}
+
 	defer file.Close()
 
 	w := csv.NewWriter(file)
 	defer w.Flush()
 
-	// Header
+	// =================================
+	// HEADER
+	// =================================
+
 	w.Write([]string{
 		"ID_RECLAMO",
 		"USUARIO_ID",
@@ -206,6 +353,10 @@ func writer(path string, in <-chan Record, done chan<- bool) {
 		"TEXTO",
 	})
 
+	// =================================
+	// ESCRITURA
+	// =================================
+
 	for rec := range in {
 
 		w.Write([]string{
@@ -213,16 +364,16 @@ func writer(path string, in <-chan Record, done chan<- bool) {
 			rec.UsuarioID,
 			rec.IP,
 			rec.Timestamp,
-			rec.Texto,
+			rec.TextoLimpio,
 		})
 	}
 
 	done <- true
 }
 
-// =========================
+// =====================================
 // WRITER REJECTED
-// =========================
+// =====================================
 
 func rejectedWriter(
 	path string,
@@ -234,10 +385,15 @@ func rejectedWriter(
 	if err != nil {
 		panic(err)
 	}
+
 	defer file.Close()
 
 	w := csv.NewWriter(file)
 	defer w.Flush()
+
+	// =================================
+	// HEADER
+	// =================================
 
 	w.Write([]string{
 		"ID_RECLAMO",
@@ -248,6 +404,10 @@ func rejectedWriter(
 		"MOTIVO",
 	})
 
+	// =================================
+	// ESCRITURA
+	// =================================
+
 	for rec := range in {
 
 		w.Write([]string{
@@ -255,7 +415,7 @@ func rejectedWriter(
 			rec.UsuarioID,
 			rec.IP,
 			rec.Timestamp,
-			rec.Texto,
+			rec.TextoLimpio,
 			rec.Motivo,
 		})
 	}
@@ -263,81 +423,118 @@ func rejectedWriter(
 	done <- true
 }
 
-// =========================
-// GENERAR REPORTE TXT
-// =========================
+// =====================================
+// REPORTE TXT
+// =====================================
 
 func generarReporteTXT() {
 
-	// Crear carpeta logs
 	os.MkdirAll("../logs", os.ModePerm)
 
-	file, err := os.Create("../logs/cleaning_summary.txt")
+	file, err := os.Create(
+		"../logs/cleaning_summary.txt",
+	)
+
 	if err != nil {
 		panic(err)
 	}
+
 	defer file.Close()
 
-	file.WriteString("===== REPORTE DE LIMPIEZA =====\n\n")
-
 	file.WriteString(
-		fmt.Sprintf("Total leídos: %d\n", stats.totalLeidos),
+		"===== REPORTE DE LIMPIEZA =====\n\n",
 	)
 
 	file.WriteString(
-		fmt.Sprintf("Procesados: %d\n", stats.totalProcesados),
+		fmt.Sprintf(
+			"Total leidos: %d\n",
+			stats.totalLeidos,
+		),
 	)
 
 	file.WriteString(
-		fmt.Sprintf("Descartados: %d\n", stats.totalDescartados),
+		fmt.Sprintf(
+			"Procesados: %d\n",
+			stats.totalProcesados,
+		),
 	)
 
 	file.WriteString(
-		fmt.Sprintf("Textos limpiados: %d\n", stats.textosLimpiados),
+		fmt.Sprintf(
+			"Descartados: %d\n",
+			stats.totalDescartados,
+		),
 	)
 
 	file.WriteString(
-		fmt.Sprintf("Textos vacíos: %d\n", stats.textosVacios),
+		fmt.Sprintf(
+			"Textos limpiados: %d\n",
+			stats.textosLimpiados,
+		),
+	)
+
+	file.WriteString(
+		fmt.Sprintf(
+			"Textos vacios: %d\n",
+			stats.textosVacios,
+		),
 	)
 
 	if stats.totalLeidos > 0 {
 
-		porcentaje := float64(stats.totalDescartados) /
-			float64(stats.totalLeidos) * 100
+		porcentaje :=
+			float64(stats.totalDescartados) /
+				float64(stats.totalLeidos) * 100
 
 		file.WriteString(
-			fmt.Sprintf("Porcentaje descartado: %.2f%%\n", porcentaje),
+			fmt.Sprintf(
+				"Porcentaje descartado: %.2f%%\n",
+				porcentaje,
+			),
 		)
 	}
 }
 
-// =========================
+// =====================================
 // MAIN
-// =========================
+// =====================================
 
 func main() {
 
 	start := time.Now()
 
-	// Channels
+	// =================================
+	// CHANNELS
+	// =================================
+
 	rawChan := make(chan Record, 1000)
+
 	cleanChan := make(chan Record, 1000)
+
 	validChan := make(chan Record, 1000)
+
 	rejectChan := make(chan RejectedRecord, 1000)
 
-	// Señales
+	// =================================
+	// SIGNALS
+	// =================================
+
 	doneClean := make(chan bool)
+
 	doneReject := make(chan bool)
 
-	// =========================
+	// =================================
 	// READER
-	// =========================
+	// =================================
 
-	go reader("../dataset/dataset_1M_raw.csv", rawChan)
+	go reader(
+		"../dataset/dataset_1M_raw.csv",
+		rawChan,
+	)
 
-	// =========================
+	// =================================
 	// NORMALIZERS
-	// =========================
+	// =================================
 
 	var wgNorm sync.WaitGroup
 
@@ -346,19 +543,26 @@ func main() {
 		wgNorm.Add(1)
 
 		go func() {
+
 			defer wgNorm.Done()
-			normalizer(rawChan, cleanChan)
+
+			normalizer(
+				rawChan,
+				cleanChan,
+			)
 		}()
 	}
 
 	go func() {
+
 		wgNorm.Wait()
+
 		close(cleanChan)
 	}()
 
-	// =========================
+	// =================================
 	// VALIDATORS
-	// =========================
+	// =================================
 
 	var wgVal sync.WaitGroup
 
@@ -367,20 +571,28 @@ func main() {
 		wgVal.Add(1)
 
 		go func() {
+
 			defer wgVal.Done()
-			validator(cleanChan, validChan, rejectChan)
+
+			validator(
+				cleanChan,
+				validChan,
+				rejectChan,
+			)
 		}()
 	}
 
 	go func() {
+
 		wgVal.Wait()
+
 		close(validChan)
 		close(rejectChan)
 	}()
 
-	// =========================
+	// =================================
 	// WRITERS
-	// =========================
+	// =================================
 
 	go writer(
 		"../dataset/dataset_clean.csv",
@@ -394,33 +606,80 @@ func main() {
 		doneReject,
 	)
 
-	// Esperar writers
+	// =================================
+	// ESPERAR WRITERS
+	// =================================
+
 	<-doneClean
 	<-doneReject
-	generarReporteTXT()
-	// =========================
-	// REPORTE FINAL
-	// =========================
 
-	fmt.Println("========== REPORTE ==========")
-	fmt.Println("Total leídos: ", stats.totalLeidos)
-	fmt.Println("Procesados: ", stats.totalProcesados)
-	fmt.Println("Descartados: ", stats.totalDescartados)
-	fmt.Println("Textos limpiados: ", stats.textosLimpiados)
-	fmt.Println("Textos vacíos: ", stats.textosVacios)
+	// =================================
+	// REPORTE TXT
+	// =================================
+
+	generarReporteTXT()
+
+	// =================================
+	// REPORTE FINAL
+	// =================================
+
+	fmt.Println(
+		"\n========== REPORTE ==========",
+	)
+
+	fmt.Println(
+		"Total leidos:",
+		stats.totalLeidos,
+	)
+
+	fmt.Println(
+		"Procesados:",
+		stats.totalProcesados,
+	)
+
+	fmt.Println(
+		"Descartados:",
+		stats.totalDescartados,
+	)
+
+	fmt.Println(
+		"Textos limpiados:",
+		stats.textosLimpiados,
+	)
+
+	fmt.Println(
+		"Textos vacios:",
+		stats.textosVacios,
+	)
 
 	if stats.totalLeidos > 0 {
 
-		porcentaje := float64(stats.totalDescartados) /
-			float64(stats.totalLeidos) * 100
+		porcentaje :=
+			float64(stats.totalDescartados) /
+				float64(stats.totalLeidos) * 100
 
-		fmt.Printf("Porcentaje descartado: %.2f%%\n", porcentaje)
+		fmt.Printf(
+			"Porcentaje descartado: %.2f%%\n",
+			porcentaje,
+		)
 	}
 
-	fmt.Println("Tiempo total:", time.Since(start))
+	fmt.Println(
+		"Tiempo total:",
+		time.Since(start),
+	)
 
 	fmt.Println("\nArchivos generados:")
-	fmt.Println("- dataset_clean.csv")
-	fmt.Println("- rejected_records.csv")
-	fmt.Println("- logs/cleaning_summary.txt")
+
+	fmt.Println(
+		"- dataset_clean.csv",
+	)
+
+	fmt.Println(
+		"- rejected_records.csv",
+	)
+
+	fmt.Println(
+		"- logs/cleaning_summary.txt",
+	)
 }
