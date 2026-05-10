@@ -1,0 +1,8 @@
+===== REPORTE DE LIMPIEZA =====
+
+Total leídos: 1700000
+Procesados: 1666008
+Descartados: 33992
+Textos limpiados: 1323268
+Textos vacíos: 0
+Porcentaje descartado: 2.00%
