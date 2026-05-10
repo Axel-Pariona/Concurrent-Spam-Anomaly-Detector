@@ -24,93 +24,166 @@ settable(void)
 
 	trans = (Trans ***) emalloc(6*sizeof(Trans **));
 
-	/* proctype 4: :init: */
+	/* proctype 4: NO_NEGATIVOS */
 
-	trans[4] = (Trans **) emalloc(6*sizeof(Trans *));
+	trans[4] = (Trans **) emalloc(11*sizeof(Trans *));
 
-	trans[4][1]	= settr(46,0,2,3,3,"(run Reader())", 0, 2, 0);
-	trans[4][2]	= settr(47,0,3,4,4,"(run Normalizer())", 0, 2, 0);
-	trans[4][3]	= settr(48,0,4,5,5,"(run Validator())", 0, 2, 0);
-	trans[4][4]	= settr(49,0,5,6,6,"(run Deduplicator())", 0, 2, 0);
-	trans[4][5]	= settr(50,0,0,7,7,"-end-", 0, 3500, 0);
+	trans[4][7]	= settr(98,0,6,1,0,".(goto)", 0, 2, 0);
+	T = trans[4][6] = settr(97,0,0,0,0,"DO", 0, 2, 0);
+	T = T->nxt	= settr(97,0,3,0,0,"DO", 0, 2, 0);
+	    T->nxt	= settr(97,0,4,0,0,"DO", 0, 2, 0);
+	T = trans[ 4][3] = settr(94,2,0,0,0,"ATOMIC", 1, 2, 0);
+	T->nxt	= settr(94,2,1,0,0,"ATOMIC", 1, 2, 0);
+	trans[4][1]	= settr(92,0,6,3,3,"(!((((read_count>=0)&&(rejected_count>=0))&&(validated_count>=0))))", 1, 2, 0); /* m: 2 -> 6,0 */
+	reached4[2] = 1;
+	trans[4][2]	= settr(0,0,0,0,0,"assert(!(!((((read_count>=0)&&(rejected_count>=0))&&(validated_count>=0)))))",0,0,0);
+	trans[4][4]	= settr(95,0,6,1,0,"(1)", 0, 2, 0);
+	trans[4][5]	= settr(96,0,6,1,0,"goto T0_init", 0, 2, 0);
+	trans[4][8]	= settr(99,0,9,1,0,"break", 0, 2, 0);
+	trans[4][9]	= settr(100,0,10,1,0,"(1)", 0, 2, 0);
+	trans[4][10]	= settr(101,0,0,4,4,"-end-", 0, 3500, 0);
 
-	/* proctype 3: Deduplicator */
+	/* proctype 3: :init: */
 
-	trans[3] = (Trans **) emalloc(13*sizeof(Trans *));
+	trans[3] = (Trans **) emalloc(21*sizeof(Trans *));
 
-	trans[3][10]	= settr(43,0,9,1,0,".(goto)", 0, 2, 0);
-	T = trans[3][9] = settr(42,0,0,0,0,"DO", 0, 2, 0);
-	    T->nxt	= settr(42,0,1,0,0,"DO", 0, 2, 0);
-	trans[3][1]	= settr(34,0,7,8,8,"ch_val_dedup?msg", 1, 505, 0);
-	T = trans[3][7] = settr(40,0,0,0,0,"IF", 0, 2, 0);
-	T = T->nxt	= settr(40,0,2,0,0,"IF", 0, 2, 0);
-	    T->nxt	= settr(40,0,5,0,0,"IF", 0, 2, 0);
-	trans[3][2]	= settr(35,0,4,9,9,"((msg==DATA))", 0, 2, 0);
-	T = trans[ 3][4] = settr(37,2,0,0,0,"ATOMIC", 1, 2, 0);
-	T->nxt	= settr(37,2,3,0,0,"ATOMIC", 1, 2, 0);
-	trans[3][3]	= settr(36,0,9,10,10,"processed = (processed+1)", 1, 2, 0);
-	trans[3][8]	= settr(41,0,9,1,0,".(goto)", 0, 2, 0);
-	trans[3][5]	= settr(38,0,12,11,11,"((msg==END))", 0, 2, 0);
-	trans[3][6]	= settr(39,0,12,1,0,"goto :b3", 0, 2, 0);
-	trans[3][11]	= settr(44,0,12,1,0,"break", 0, 2, 0);
-	trans[3][12]	= settr(45,0,0,12,12,"-end-", 0, 3500, 0);
+	trans[3][1]	= settr(72,0,2,5,5,"i = 0", 0, 2, 0);
+	trans[3][2]	= settr(73,0,8,6,6,"(run Reader())", 0, 2, 0);
+	trans[3][9]	= settr(80,0,8,1,0,".(goto)", 0, 2, 0);
+	T = trans[3][8] = settr(79,0,0,0,0,"DO", 0, 2, 0);
+	T = T->nxt	= settr(79,0,3,0,0,"DO", 0, 2, 0);
+	    T->nxt	= settr(79,0,6,0,0,"DO", 0, 2, 0);
+	trans[3][3]	= settr(74,0,4,7,0,"((i<2))", 0, 2, 0);
+	trans[3][4]	= settr(75,0,5,8,8,"(run Normalizer())", 0, 2, 0);
+	trans[3][5]	= settr(76,0,8,9,9,"i = (i+1)", 0, 2, 0);
+	trans[3][6]	= settr(77,0,11,2,0,"else", 0, 2, 0);
+	trans[3][7]	= settr(78,0,11,1,0,"goto :b5", 0, 2, 0); /* m: 11 -> 0,17 */
+	reached3[11] = 1;
+	trans[3][10]	= settr(81,0,11,1,0,"break", 0, 2, 0);
+	trans[3][11]	= settr(82,0,17,10,10,"i = 0", 0, 2, 0);
+	trans[3][18]	= settr(89,0,17,1,0,".(goto)", 0, 2, 0);
+	T = trans[3][17] = settr(88,0,0,0,0,"DO", 0, 2, 0);
+	T = T->nxt	= settr(88,0,12,0,0,"DO", 0, 2, 0);
+	    T->nxt	= settr(88,0,15,0,0,"DO", 0, 2, 0);
+	trans[3][12]	= settr(83,0,13,11,0,"((i<2))", 0, 2, 0);
+	trans[3][13]	= settr(84,0,14,12,12,"(run Validator())", 0, 2, 0);
+	trans[3][14]	= settr(85,0,17,13,13,"i = (i+1)", 0, 2, 0);
+	trans[3][15]	= settr(86,0,20,2,0,"else", 0, 2, 0);
+	trans[3][16]	= settr(87,0,20,1,0,"goto :b6", 0, 2, 0);
+	trans[3][19]	= settr(90,0,20,1,0,"break", 0, 2, 0);
+	trans[3][20]	= settr(91,0,0,14,14,"-end-", 0, 3500, 0);
 
 	/* proctype 2: Validator */
 
-	trans[2] = (Trans **) emalloc(13*sizeof(Trans *));
+	trans[2] = (Trans **) emalloc(15*sizeof(Trans *));
 
-	trans[2][10]	= settr(31,0,9,1,0,".(goto)", 0, 2, 0);
-	T = trans[2][9] = settr(30,0,0,0,0,"DO", 0, 2, 0);
-	    T->nxt	= settr(30,0,1,0,0,"DO", 0, 2, 0);
-	trans[2][1]	= settr(22,0,7,13,13,"ch_norm_val?msg", 1, 504, 0);
-	T = trans[2][7] = settr(28,0,0,0,0,"IF", 0, 2, 0);
-	T = T->nxt	= settr(28,0,2,0,0,"IF", 0, 2, 0);
-	    T->nxt	= settr(28,0,4,0,0,"IF", 0, 2, 0);
-	trans[2][2]	= settr(23,0,3,14,14,"((msg==DATA))", 0, 2, 0);
-	trans[2][3]	= settr(24,0,9,15,15,"ch_val_dedup!DATA", 1, 5, 0);
-	trans[2][8]	= settr(29,0,9,1,0,".(goto)", 0, 2, 0);
-	trans[2][4]	= settr(25,0,5,16,16,"((msg==END))", 0, 2, 0);
-	trans[2][5]	= settr(26,0,12,17,17,"ch_val_dedup!END", 1, 5, 0);
-	trans[2][6]	= settr(27,0,12,1,0,"goto :b2", 0, 2, 0);
-	trans[2][11]	= settr(32,0,12,1,0,"break", 0, 2, 0);
-	trans[2][12]	= settr(33,0,0,18,18,"-end-", 0, 3500, 0);
+	trans[2][12]	= settr(69,0,11,1,0,".(goto)", 0, 2, 0);
+	T = trans[2][11] = settr(68,0,0,0,0,"DO", 0, 2, 0);
+	    T->nxt	= settr(68,0,1,0,0,"DO", 0, 2, 0);
+	trans[2][1]	= settr(58,0,9,15,15,"ch_clean?msg", 1, 504, 0);
+	T = trans[2][9] = settr(66,0,0,0,0,"IF", 0, 2, 0);
+	T = T->nxt	= settr(66,0,2,0,0,"IF", 0, 2, 0);
+	    T->nxt	= settr(66,0,5,0,0,"IF", 0, 2, 0);
+	trans[2][2]	= settr(59,0,4,16,16,"((msg==DATA))", 0, 2, 0);
+	T = trans[ 2][4] = settr(61,2,0,0,0,"ATOMIC", 1, 2, 0);
+	T->nxt	= settr(61,2,3,0,0,"ATOMIC", 1, 2, 0);
+	trans[2][3]	= settr(60,0,11,17,17,"validated_count = (validated_count+1)", 1, 2, 0);
+	trans[2][10]	= settr(67,0,11,1,0,".(goto)", 0, 2, 0);
+	trans[2][5]	= settr(62,0,7,18,18,"((msg==END))", 0, 2, 0);
+	T = trans[ 2][7] = settr(64,2,0,0,0,"ATOMIC", 1, 2, 0);
+	T->nxt	= settr(64,2,6,0,0,"ATOMIC", 1, 2, 0);
+	trans[2][6]	= settr(63,0,14,19,19,"val_done = (val_done+1)", 1, 2, 0);
+	trans[2][8]	= settr(65,0,14,1,0,"goto :b4", 0, 2, 0);
+	trans[2][13]	= settr(70,0,14,1,0,"break", 0, 2, 0);
+	trans[2][14]	= settr(71,0,0,20,20,"-end-", 0, 3500, 0);
 
 	/* proctype 1: Normalizer */
 
-	trans[1] = (Trans **) emalloc(13*sizeof(Trans *));
+	trans[1] = (Trans **) emalloc(38*sizeof(Trans *));
 
-	trans[1][10]	= settr(19,0,9,1,0,".(goto)", 0, 2, 0);
-	T = trans[1][9] = settr(18,0,0,0,0,"DO", 0, 2, 0);
-	    T->nxt	= settr(18,0,1,0,0,"DO", 0, 2, 0);
-	trans[1][1]	= settr(10,0,7,19,19,"ch_reader_norm?msg", 1, 503, 0);
-	T = trans[1][7] = settr(16,0,0,0,0,"IF", 0, 2, 0);
-	T = T->nxt	= settr(16,0,2,0,0,"IF", 0, 2, 0);
-	    T->nxt	= settr(16,0,4,0,0,"IF", 0, 2, 0);
-	trans[1][2]	= settr(11,0,3,20,20,"((msg==DATA))", 0, 2, 0);
-	trans[1][3]	= settr(12,0,9,21,21,"ch_norm_val!DATA", 1, 4, 0);
-	trans[1][8]	= settr(17,0,9,1,0,".(goto)", 0, 2, 0);
-	trans[1][4]	= settr(13,0,5,22,22,"((msg==END))", 0, 2, 0);
-	trans[1][5]	= settr(14,0,12,23,23,"ch_norm_val!END", 1, 4, 0);
-	trans[1][6]	= settr(15,0,12,1,0,"goto :b1", 0, 2, 0);
-	trans[1][11]	= settr(20,0,12,1,0,"break", 0, 2, 0);
-	trans[1][12]	= settr(21,0,0,24,24,"-end-", 0, 3500, 0);
+	trans[1][1]	= settr(21,0,34,21,21,"c = 0", 0, 2, 0);
+	trans[1][35]	= settr(55,0,34,1,0,".(goto)", 0, 2, 0);
+	T = trans[1][34] = settr(54,0,0,0,0,"DO", 0, 2, 0);
+	    T->nxt	= settr(54,0,2,0,0,"DO", 0, 2, 0);
+	trans[1][2]	= settr(22,0,32,22,22,"ch_raw?msg", 1, 503, 0);
+	T = trans[1][32] = settr(52,0,0,0,0,"IF", 0, 2, 0);
+	T = T->nxt	= settr(52,0,3,0,0,"IF", 0, 2, 0);
+	    T->nxt	= settr(52,0,14,0,0,"IF", 0, 2, 0);
+	trans[1][3]	= settr(23,0,11,23,23,"((msg==DATA))", 0, 2, 0);
+	T = trans[1][11] = settr(31,0,0,0,0,"IF", 0, 2, 0);
+	T = T->nxt	= settr(31,0,4,0,0,"IF", 0, 2, 0);
+	    T->nxt	= settr(31,0,7,0,0,"IF", 0, 2, 0);
+	trans[1][4]	= settr(24,0,6,24,0,"(((c%8)==0))", 0, 2, 0);
+	T = trans[ 1][6] = settr(26,2,0,0,0,"ATOMIC", 1, 2, 0);
+	T->nxt	= settr(26,2,5,0,0,"ATOMIC", 1, 2, 0);
+	trans[1][5]	= settr(25,0,34,25,25,"rejected_count = (rejected_count+1)", 1, 2, 0); /* m: 13 -> 0,34 */
+	reached1[13] = 1;
+	trans[1][12]	= settr(32,0,13,1,0,".(goto)", 0, 2, 0); /* m: 13 -> 0,34 */
+	reached1[13] = 1;
+	trans[1][7]	= settr(27,0,9,2,0,"else", 0, 2, 0);
+	T = trans[ 1][9] = settr(29,2,0,0,0,"ATOMIC", 1, 2, 0);
+	T->nxt	= settr(29,2,8,0,0,"ATOMIC", 1, 2, 0);
+	trans[1][8]	= settr(28,0,10,26,26,"normalized_count = (normalized_count+1)", 1, 2, 0);
+	trans[1][10]	= settr(30,0,13,27,27,"ch_clean!DATA", 1, 4, 0);
+	trans[1][13]	= settr(33,0,34,28,28,"c = (c+1)", 0, 2, 0);
+	trans[1][33]	= settr(53,0,34,1,0,".(goto)", 0, 2, 0);
+	trans[1][14]	= settr(34,0,16,29,29,"((msg==END))", 0, 2, 0);
+	T = trans[ 1][16] = settr(36,2,0,0,0,"ATOMIC", 1, 2, 0);
+	T->nxt	= settr(36,2,15,0,0,"ATOMIC", 1, 2, 0);
+	trans[1][15]	= settr(35,0,29,30,30,"norm_done = (norm_done+1)", 1, 2, 0);
+	T = trans[1][29] = settr(49,0,0,0,0,"IF", 0, 2, 0);
+	T = T->nxt	= settr(49,0,17,0,0,"IF", 0, 2, 0);
+	    T->nxt	= settr(49,0,27,0,0,"IF", 0, 2, 0);
+	trans[1][17]	= settr(37,0,18,31,0,"((norm_done==2))", 1, 2, 0);
+	trans[1][18]	= settr(38,0,24,32,32,"c = 0", 0, 2, 0);
+	trans[1][25]	= settr(45,0,24,1,0,".(goto)", 0, 2, 0);
+	T = trans[1][24] = settr(44,0,0,0,0,"DO", 0, 2, 0);
+	T = T->nxt	= settr(44,0,19,0,0,"DO", 0, 2, 0);
+	    T->nxt	= settr(44,0,22,0,0,"DO", 0, 2, 0);
+	trans[1][19]	= settr(39,0,20,33,0,"((c<2))", 0, 2, 0);
+	trans[1][20]	= settr(40,0,21,34,34,"ch_clean!END", 1, 4, 0);
+	trans[1][21]	= settr(41,0,24,35,35,"c = (c+1)", 0, 2, 0);
+	trans[1][22]	= settr(42,0,37,2,0,"else", 0, 2, 0);
+	trans[1][23]	= settr(43,0,37,1,0,"goto :b3", 0, 2, 0);
+	trans[1][26]	= settr(46,0,37,1,0,"break", 0, 2, 0);
+	trans[1][30]	= settr(50,0,37,1,0,".(goto)", 0, 2, 0);
+	trans[1][27]	= settr(47,0,28,2,0,"else", 0, 2, 0);
+	trans[1][28]	= settr(48,0,37,1,0,"(1)", 0, 2, 0);
+	trans[1][31]	= settr(51,0,37,1,0,"goto :b2", 0, 2, 0);
+	trans[1][36]	= settr(56,0,37,1,0,"break", 0, 2, 0);
+	trans[1][37]	= settr(57,0,0,36,36,"-end-", 0, 3500, 0);
 
 	/* proctype 0: Reader */
 
-	trans[0] = (Trans **) emalloc(11*sizeof(Trans *));
+	trans[0] = (Trans **) emalloc(22*sizeof(Trans *));
 
-	trans[0][8]	= settr(7,0,7,1,0,".(goto)", 0, 2, 0);
-	T = trans[0][7] = settr(6,0,0,0,0,"DO", 0, 2, 0);
-	T = T->nxt	= settr(6,0,1,0,0,"DO", 0, 2, 0);
-	    T->nxt	= settr(6,0,4,0,0,"DO", 0, 2, 0);
-	trans[0][1]	= settr(0,0,2,25,0,"((i<10))", 0, 2, 0);
-	trans[0][2]	= settr(1,0,3,26,26,"ch_reader_norm!DATA", 1, 3, 0);
-	trans[0][3]	= settr(2,0,7,27,27,"i = (i+1)", 0, 2, 0);
-	trans[0][4]	= settr(3,0,5,2,0,"else", 0, 2, 0);
-	trans[0][5]	= settr(4,0,10,28,28,"ch_reader_norm!END", 1, 3, 0);
-	trans[0][6]	= settr(5,0,10,1,0,"goto :b0", 0, 2, 0);
-	trans[0][9]	= settr(8,0,10,1,0,"break", 0, 2, 0);
-	trans[0][10]	= settr(9,0,0,29,29,"-end-", 0, 3500, 0);
+	trans[0][1]	= settr(0,0,18,37,37,"i = 0", 0, 2, 0);
+	trans[0][19]	= settr(18,0,18,1,0,".(goto)", 0, 2, 0);
+	T = trans[0][18] = settr(17,0,0,0,0,"DO", 0, 2, 0);
+	T = T->nxt	= settr(17,0,2,0,0,"DO", 0, 2, 0);
+	    T->nxt	= settr(17,0,7,0,0,"DO", 0, 2, 0);
+	trans[0][2]	= settr(1,0,3,38,0,"((i<6))", 0, 2, 0);
+	trans[0][3]	= settr(2,0,5,39,39,"ch_raw!DATA", 1, 3, 0);
+	T = trans[ 0][5] = settr(4,2,0,0,0,"ATOMIC", 1, 2, 0);
+	T->nxt	= settr(4,2,4,0,0,"ATOMIC", 1, 2, 0);
+	trans[0][4]	= settr(3,0,18,40,40,"read_count = (read_count+1)", 1, 2, 0); /* m: 6 -> 0,18 */
+	reached0[6] = 1;
+	trans[0][6]	= settr(0,0,0,0,0,"i = (i+1)",0,0,0);
+	trans[0][7]	= settr(6,0,8,2,0,"else", 0, 2, 0);
+	trans[0][8]	= settr(7,0,14,41,41,"i = 0", 0, 2, 0);
+	trans[0][15]	= settr(14,0,14,1,0,".(goto)", 0, 2, 0);
+	T = trans[0][14] = settr(13,0,0,0,0,"DO", 0, 2, 0);
+	T = T->nxt	= settr(13,0,9,0,0,"DO", 0, 2, 0);
+	    T->nxt	= settr(13,0,12,0,0,"DO", 0, 2, 0);
+	trans[0][9]	= settr(8,0,10,42,0,"((i<2))", 0, 2, 0);
+	trans[0][10]	= settr(9,0,11,43,43,"ch_raw!END", 1, 3, 0);
+	trans[0][11]	= settr(10,0,14,44,44,"i = (i+1)", 0, 2, 0);
+	trans[0][12]	= settr(11,0,21,2,0,"else", 0, 2, 0);
+	trans[0][13]	= settr(12,0,21,1,0,"goto :b1", 0, 2, 0);
+	trans[0][16]	= settr(15,0,21,1,0,"break", 0, 2, 0);
+	trans[0][17]	= settr(16,0,21,1,0,"goto :b0", 0, 2, 0);
+	trans[0][20]	= settr(19,0,21,1,0,"break", 0, 2, 0);
+	trans[0][21]	= settr(20,0,0,45,45,"-end-", 0, 3500, 0);
 	/* np_ demon: */
 	trans[_NP_] = (Trans **) emalloc(3*sizeof(Trans *));
 	T = trans[_NP_][0] = settr(9997,0,1,_T5,0,"(np_)", 1,2,0);

@@ -1,0 +1,9 @@
+never NO_NEGATIVOS {    /* !([] ((((read_count>=0)) && ((rejected_count>=0))) && ((validated_count>=0)))) */
+T0_init:
+	do
+	:: atomic { (! (((((read_count>=0)) && ((rejected_count>=0))) && ((validated_count>=0))))) -> assert(!(! (((((read_count>=0)) && ((rejected_count>=0))) && ((validated_count>=0)))))) }
+	:: (1) -> goto T0_init
+	od;
+accept_all:
+	skip
+}

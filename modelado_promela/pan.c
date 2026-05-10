@@ -499,66 +499,79 @@ int _;	/* predefined write-only variable */
 #endif
 
 short src_ln4 [] = {
-	  0,  65,  66,  67,  68,  69,   0, };
+	  0,   3,   3,   3,   4,   4,   2,   6, 
+	  2,   7,   8,   0, };
 S_F_MAP src_file4 [] = {
 	{ "-", 0, 0 },
-	{ "modelo.pml", 1, 5 },
-	{ "-", 6, 7 }
+	{ "_spin_nvr.tmp", 1, 10 },
+	{ "-", 11, 12 }
 };
+short *src_claim;
 uchar reached4 [] = {
-	  0,   0,   0,   0,   0,   0,   0, };
+	  0,   1,   0,   1,   1,   1,   0,   1, 
+	  1,   1,   0,   0, };
 uchar *loopstate4;
 
 short src_ln3 [] = {
-	  0,  52,  54,  56,  55,  58,  59,  53, 
-	 61,  51,  62,  51,  62,   0, };
+	  0, 141, 143, 146, 147, 148, 149, 150, 
+	145, 153, 145, 153, 156, 157, 158, 159, 
+	160, 155, 162, 155, 162,   0, };
 S_F_MAP src_file3 [] = {
 	{ "-", 0, 0 },
-	{ "modelo.pml", 1, 12 },
-	{ "-", 13, 14 }
+	{ "modelo.pml", 1, 20 },
+	{ "-", 21, 22 }
 };
 uchar reached3 [] = {
-	  0,   1,   1,   1,   0,   1,   1,   0, 
+	  0,   0,   0,   1,   0,   0,   1,   0, 
+	  0,   1,   1,   0,   1,   0,   0,   1, 
 	  1,   0,   1,   1,   0,   0, };
 uchar *loopstate3;
 
 short src_ln2 [] = {
-	  0,  38,  40,  41,  42,  43,  44,  39, 
-	 46,  37,  47,  37,  47,   0, };
+	  0, 116, 119, 122, 121, 126, 129, 128, 
+	132, 118, 134, 115, 135, 115, 135,   0, };
 S_F_MAP src_file2 [] = {
 	{ "-", 0, 0 },
-	{ "modelo.pml", 1, 12 },
-	{ "-", 13, 14 }
+	{ "modelo.pml", 1, 14 },
+	{ "-", 15, 16 }
 };
 uchar reached2 [] = {
-	  0,   1,   1,   0,   1,   0,   1,   0, 
-	  1,   0,   1,   1,   0,   0, };
+	  0,   1,   1,   1,   0,   1,   1,   0, 
+	  1,   0,   1,   0,   1,   1,   0,   0, };
 uchar *loopstate2;
 
 short src_ln1 [] = {
-	  0,  24,  26,  27,  28,  29,  30,  25, 
-	 32,  23,  33,  23,  33,   0, };
+	  0,  56,  59,  62,  65,  68,  67,  71, 
+	 74,  73,  78,  64,  81,  81,  83,  86, 
+	 85,  90,  92,  95,  96,  97,  98,  99, 
+	 94, 102,  94, 102, 103,  89, 106, 106, 
+	 61, 108,  58, 109,  58, 109,   0, };
 S_F_MAP src_file1 [] = {
 	{ "-", 0, 0 },
-	{ "modelo.pml", 1, 12 },
-	{ "-", 13, 14 }
+	{ "modelo.pml", 1, 37 },
+	{ "-", 38, 39 }
 };
 uchar reached1 [] = {
-	  0,   1,   1,   0,   1,   0,   1,   0, 
-	  1,   0,   1,   1,   0,   0, };
+	  0,   0,   1,   1,   1,   1,   0,   1, 
+	  1,   0,   0,   0,   1,   0,   1,   1, 
+	  0,   1,   0,   1,   0,   0,   1,   1, 
+	  0,   1,   1,   1,   1,   0,   1,   1, 
+	  0,   1,   0,   1,   1,   0,   0, };
 uchar *loopstate1;
 
 short src_ln0 [] = {
-	  0,  12,  13,  14,  15,  16,  17,  11, 
-	 19,  11,  19,   0, };
+	  0,  22,  25,  27,  30,  29,  33,  35, 
+	 37,  40,  41,  42,  43,  44,  39,  47, 
+	 39,  47,  24,  49,  24,  49,   0, };
 S_F_MAP src_file0 [] = {
 	{ "-", 0, 0 },
-	{ "modelo.pml", 1, 10 },
-	{ "-", 11, 12 }
+	{ "modelo.pml", 1, 21 },
+	{ "-", 22, 23 }
 };
 uchar reached0 [] = {
-	  0,   1,   0,   0,   1,   0,   1,   0, 
-	  1,   1,   0,   0, };
+	  0,   0,   1,   0,   1,   0,   0,   1, 
+	  0,   1,   0,   0,   1,   1,   0,   1, 
+	  1,   1,   0,   1,   1,   0,   0, };
 uchar *loopstate0;
 uchar reached5[3];  /* np_ */
 uchar *loopstate5;  /* np_ */
@@ -591,8 +604,8 @@ char *procname[] = {
    "Reader",
    "Normalizer",
    "Validator",
-   "Deduplicator",
    ":init:",
+   "NO_NEGATIVOS",
    ":np_:",
 	0
 };
@@ -603,8 +616,8 @@ int Btypes[] = {
    4,	/* Reader */
    4,	/* Normalizer */
    4,	/* Validator */
-   4,	/* Deduplicator */
    2,	/* :init: */
+   1,	/* NO_NEGATIVOS */
    0	/* :np_: */
 };
 
@@ -879,31 +892,34 @@ addproc(int calling_pid, int priority, int n)
 		reached5[0] = 1;
 		accpstate[5][1] = 1;
 		break;
-	case 4:	/* :init: */
+	case 4:	/* NO_NEGATIVOS */
 		((P4 *)pptr(h))->_t = 4;
-		((P4 *)pptr(h))->_p = 1;
+		((P4 *)pptr(h))->_p = 6;
 #ifdef HAS_PRIORITY
 		((P4 *)pptr(h))->_priority = priority; /* was: 1 */
 #endif
-		reached4[1]=1;
+		reached4[6]=1;
+		src_claim = src_ln4;
 		/* params: */
 		/* locals: */
+#ifdef VAR_RANGES
+#endif
 #ifdef HAS_CODE
 		locinit4(h);
 #endif
 		break;
-	case 3:	/* Deduplicator */
+	case 3:	/* :init: */
 		((P3 *)pptr(h))->_t = 3;
-		((P3 *)pptr(h))->_p = 9;
+		((P3 *)pptr(h))->_p = 1;
 #ifdef HAS_PRIORITY
 		((P3 *)pptr(h))->_priority = priority; /* was: 1 */
 #endif
-		reached3[9]=1;
+		reached3[1]=1;
 		/* params: */
 		/* locals: */
-		((P3 *)pptr(h))->msg = 0;
+		((P3 *)pptr(h))->i = 0;
 #ifdef VAR_RANGES
-		logval("Deduplicator:msg", ((P3 *)pptr(h))->msg);
+		logval(":init::i", ((P3 *)pptr(h))->i);
 #endif
 #ifdef HAS_CODE
 		locinit3(h);
@@ -911,11 +927,11 @@ addproc(int calling_pid, int priority, int n)
 		break;
 	case 2:	/* Validator */
 		((P2 *)pptr(h))->_t = 2;
-		((P2 *)pptr(h))->_p = 9;
+		((P2 *)pptr(h))->_p = 11;
 #ifdef HAS_PRIORITY
 		((P2 *)pptr(h))->_priority = priority; /* was: 1 */
 #endif
-		reached2[9]=1;
+		reached2[11]=1;
 		/* params: */
 		/* locals: */
 		((P2 *)pptr(h))->msg = 0;
@@ -928,16 +944,18 @@ addproc(int calling_pid, int priority, int n)
 		break;
 	case 1:	/* Normalizer */
 		((P1 *)pptr(h))->_t = 1;
-		((P1 *)pptr(h))->_p = 9;
+		((P1 *)pptr(h))->_p = 1;
 #ifdef HAS_PRIORITY
 		((P1 *)pptr(h))->_priority = priority; /* was: 1 */
 #endif
-		reached1[9]=1;
+		reached1[1]=1;
 		/* params: */
 		/* locals: */
 		((P1 *)pptr(h))->msg = 0;
+		((P1 *)pptr(h))->c = 0;
 #ifdef VAR_RANGES
 		logval("Normalizer:msg", ((P1 *)pptr(h))->msg);
+		logval("Normalizer:c", ((P1 *)pptr(h))->c);
 #endif
 #ifdef HAS_CODE
 		locinit1(h);
@@ -945,11 +963,11 @@ addproc(int calling_pid, int priority, int n)
 		break;
 	case 0:	/* Reader */
 		((P0 *)pptr(h))->_t = 0;
-		((P0 *)pptr(h))->_p = 7;
+		((P0 *)pptr(h))->_p = 1;
 #ifdef HAS_PRIORITY
 		((P0 *)pptr(h))->_priority = priority; /* was: 1 */
 #endif
-		reached0[7]=1;
+		reached0[1]=1;
 		/* params: */
 		/* locals: */
 		((P0 *)pptr(h))->i = 0;
@@ -1133,11 +1151,11 @@ run(void)
 
 	Maxbody = max(Maxbody, ((int) sizeof(Q1)));
 	Maxbody = max(Maxbody, ((int) sizeof(Q2)));
-	Maxbody = max(Maxbody, ((int) sizeof(Q3)));
 	Maxbody = max(Maxbody, sizeof(State)-VECTORSZ);
 	if ((Maxbody % WS) != 0)
 		Maxbody += WS - (Maxbody % WS);
 
+	accpstate[4][9] = 1;
 	retrans(0, _nstates0, _start0, src_ln0, reached0, loopstate0);
 	retrans(1, _nstates1, _start1, src_ln1, reached1, loopstate1);
 	retrans(2, _nstates2, _start2, src_ln2, reached2, loopstate2);
@@ -12492,11 +12510,21 @@ do_reach(void)
 void
 iniglobals(int calling_pid)
 {
-		now.ch_reader_norm = addqueue(calling_pid, 1, 0);
-		now.ch_norm_val = addqueue(calling_pid, 2, 0);
-		now.ch_val_dedup = addqueue(calling_pid, 3, 0);
-		processed = 0;
+		now.ch_raw = addqueue(calling_pid, 1, 0);
+		now.ch_clean = addqueue(calling_pid, 2, 0);
+		now.read_count = 0;
+		now.normalized_count = 0;
+		now.rejected_count = 0;
+		now.validated_count = 0;
+		now.norm_done = 0;
+		now.val_done = 0;
 #ifdef VAR_RANGES
+		logval("read_count", now.read_count);
+		logval("normalized_count", now.normalized_count);
+		logval("rejected_count", now.rejected_count);
+		logval("validated_count", now.validated_count);
+		logval("norm_done", now.norm_done);
+		logval("val_done", now.val_done);
 #endif
 }
 
@@ -12513,9 +12541,8 @@ addqueue(int calling_pid, int n, int is_rv)
 	printf("%4d: add queue %d\n", depth, i);
 #endif
 	switch (n) {
-	case 3: j = sizeof(Q3); q_flds[3] = 1; q_max[3] = 5; break;
-	case 2: j = sizeof(Q2); q_flds[2] = 1; q_max[2] = 5; break;
-	case 1: j = sizeof(Q1); q_flds[1] = 1; q_max[1] = 5; break;
+	case 2: j = sizeof(Q2); q_flds[2] = 1; q_max[2] = 20; break;
+	case 1: j = sizeof(Q1); q_flds[1] = 1; q_max[1] = 20; break;
 	default: Uerror("bad queue - addqueue");
 	}
 	#ifdef BFS_PAR
@@ -12596,7 +12623,6 @@ what_q_size(int t)
 	case 0: j = sizeof(Q0); break;
 	case 1: j = sizeof(Q1); break;
 	case 2: j = sizeof(Q2); break;
-	case 3: j = sizeof(Q3); break;
 	default: Uerror("bad qtype");
 	}
 	return j;
@@ -12631,19 +12657,6 @@ qsend(int into, int sorted, int fld0, int args_given)
 	z = qptr(into);
 	j = ((Q0 *)qptr(into))->Qlen;
 	switch (((Q0 *)qptr(into))->_t) {
-	case 3:
-#ifdef HAS_SORTED
-		(trpt+1)->ipt = j;
-#endif
-		((Q3 *)z)->Qlen = ((Q3 *)z)->Qlen + 1;
-		((Q3 *)z)->contents[j].fld0 = fld0;	/* mtype _unnamed_ */
-		if (args_given != 1)
-		{	if (args_given > 1)
-				uerror("too many parameters in send stmnt");
-			else
-				uerror("too few parameters in send stmnt");
-		}
-		break;
 	case 2:
 #ifdef HAS_SORTED
 		(trpt+1)->ipt = j;
@@ -12688,7 +12701,6 @@ q_zero(int from)
 		return 0;
 	}
 	switch(((Q0 *)qptr(from))->_t) {
-	case 3: return 0;
 	case 2: return 0;
 	case 1: return 0;
 	case 0: printf("queue %d was deleted\n", from+1);
@@ -12792,9 +12804,8 @@ q_full(int from)
 {	if (!from--)
 	uerror("ref to uninitialized chan name (qfull)");
 	switch(((Q0 *)qptr(from))->_t) {
-	case 3: return (q_sz(from) == 5);
-	case 2: return (q_sz(from) == 5);
-	case 1: return (q_sz(from) == 5);
+	case 2: return (q_sz(from) == 20);
+	case 1: return (q_sz(from) == 20);
 	case 0: printf("queue %d was deleted\n", from+1);
 	}
 	Uerror("bad queue - q_full");
@@ -12837,21 +12848,6 @@ qrecv(int from, int slot, int fld, int done)
 		require('r', from);
 #endif
 	switch (((Q0 *)qptr(from))->_t) {
-	case 3:
-		if (fld == 0) r = ((Q3 *)z)->contents[slot].fld0;
-		if (done)
-		{	j = ((Q3 *)z)->Qlen;
-			((Q3 *)z)->Qlen = --j;
-			for (k=slot; k<j; k++)
-			{
-				((Q3 *)z)->contents[k].fld0 = 
-					((Q3 *)z)->contents[k+1].fld0;
-			}
-			((Q3 *)z)->contents[j].fld0 = 0;
-			if (fld+1 != 1)
-				uerror("missing pars in receive");
-		}
-		break;
 	case 2:
 		if (fld == 0) r = ((Q2 *)z)->contents[slot].fld0;
 		if (done)
@@ -12897,7 +12893,6 @@ col_q(int i, char *z)
 	char *x, *y;
 	Q0 *ptr = (Q0 *) qptr(i);
 	switch (ptr->_t) {
-	case 3: j = sizeof(Q3); break;
 	case 2: j = sizeof(Q2); break;
 	case 1: j = sizeof(Q1); break;
 	default: Uerror("bad qtype - collapse");
@@ -12951,10 +12946,6 @@ unsend(int into)
 	j = ((Q0 *)z)->Qlen;
 	((Q0 *)z)->Qlen = --j;
 	switch (((Q0 *)qptr(into))->_t) {
-	case 3:
-		((Q3 *)z)->contents[j].fld0 = 0;
-		_m = trpt->o_m;
-		break;
 	case 2:
 		((Q2 *)z)->contents[j].fld0 = 0;
 		_m = trpt->o_m;
@@ -12992,20 +12983,8 @@ unrecv(int from, int slot, int fld, int fldvar, int strt)
 	j = ((Q0 *)z)->Qlen;
 	if (strt) ((Q0 *)z)->Qlen = j+1;
 	switch (((Q0 *)qptr(from))->_t) {
-	case 3:
-		if (strt && slot<4)
-		{	for (j--; j>=slot; j--)
-			{	((Q3 *)z)->contents[j+1].fld0 =
-				((Q3 *)z)->contents[j].fld0;
-			}
-		}
-		if (strt) {
-			((Q3 *)z)->contents[slot].fld0 = 0;
-		}
-		if (fld == 0) ((Q3 *)z)->contents[slot].fld0 = fldvar;
-		break;
 	case 2:
-		if (strt && slot<4)
+		if (strt && slot<19)
 		{	for (j--; j>=slot; j--)
 			{	((Q2 *)z)->contents[j+1].fld0 =
 				((Q2 *)z)->contents[j].fld0;
@@ -13017,7 +12996,7 @@ unrecv(int from, int slot, int fld, int fldvar, int strt)
 		if (fld == 0) ((Q2 *)z)->contents[slot].fld0 = fldvar;
 		break;
 	case 1:
-		if (strt && slot<4)
+		if (strt && slot<19)
 		{	for (j--; j>=slot; j--)
 			{	((Q1 *)z)->contents[j+1].fld0 =
 				((Q1 *)z)->contents[j].fld0;
@@ -13044,20 +13023,15 @@ q_cond(short II, Trans *t)
 #endif
 		switch (t->qu[i]) {
 		case 0: break;
-		case 1: if (	(t->ty[i] == Q_FULL_F && ( q_full((int) ( now.ch_reader_norm) )))
-			 || 	(t->ty[i] == Q_FULL_T && (!q_full((int) ( now.ch_reader_norm) )))
-			 || 	(t->ty[i] == Q_EMPT_F && ( !q_len((int) ( now.ch_reader_norm) )))
-			 || 	(t->ty[i] == Q_EMPT_T && (  q_len((int) ( now.ch_reader_norm) )))
+		case 1: if (	(t->ty[i] == Q_FULL_F && ( q_full((int) ( now.ch_raw) )))
+			 || 	(t->ty[i] == Q_FULL_T && (!q_full((int) ( now.ch_raw) )))
+			 || 	(t->ty[i] == Q_EMPT_F && ( !q_len((int) ( now.ch_raw) )))
+			 || 	(t->ty[i] == Q_EMPT_T && (  q_len((int) ( now.ch_raw) )))
 			    ) return 0; break;
-		case 2: if (	(t->ty[i] == Q_FULL_F && ( q_full((int) ( now.ch_norm_val) )))
-			 || 	(t->ty[i] == Q_FULL_T && (!q_full((int) ( now.ch_norm_val) )))
-			 || 	(t->ty[i] == Q_EMPT_F && ( !q_len((int) ( now.ch_norm_val) )))
-			 || 	(t->ty[i] == Q_EMPT_T && (  q_len((int) ( now.ch_norm_val) )))
-			    ) return 0; break;
-		case 3: if (	(t->ty[i] == Q_FULL_F && ( q_full((int) ( now.ch_val_dedup) )))
-			 || 	(t->ty[i] == Q_FULL_T && (!q_full((int) ( now.ch_val_dedup) )))
-			 || 	(t->ty[i] == Q_EMPT_F && ( !q_len((int) ( now.ch_val_dedup) )))
-			 || 	(t->ty[i] == Q_EMPT_T && (  q_len((int) ( now.ch_val_dedup) )))
+		case 2: if (	(t->ty[i] == Q_FULL_F && ( q_full((int) ( now.ch_clean) )))
+			 || 	(t->ty[i] == Q_FULL_T && (!q_full((int) ( now.ch_clean) )))
+			 || 	(t->ty[i] == Q_EMPT_F && ( !q_len((int) ( now.ch_clean) )))
+			 || 	(t->ty[i] == Q_EMPT_T && (  q_len((int) ( now.ch_clean) )))
 			    ) return 0; break;
 		default: Uerror("unknown qid - q_cond");
 				return 0;
@@ -13241,9 +13215,9 @@ void
 active_procs(void)
 {
 	if (reversing == 0) {
-		Addproc(4, 1);
+		Addproc(3, 1);
 	} else {
-		Addproc(4, 1);
+		Addproc(3, 1);
 	}
 }
 #ifdef MA
@@ -14360,12 +14334,16 @@ c_globals(void)
 	printf("global vars:\n");
 	printf("	mtype  DATA:	2\n");
 	printf("	mtype  END:	1\n");
-	printf("	chan ch_reader_norm (=%d):	len %d:\t", now.ch_reader_norm, q_len(now.ch_reader_norm));
-	c_chandump(now.ch_reader_norm);
-	printf("	chan ch_norm_val (=%d):	len %d:\t", now.ch_norm_val, q_len(now.ch_norm_val));
-	c_chandump(now.ch_norm_val);
-	printf("	chan ch_val_dedup (=%d):	len %d:\t", now.ch_val_dedup, q_len(now.ch_val_dedup));
-	c_chandump(now.ch_val_dedup);
+	printf("	chan ch_raw (=%d):	len %d:\t", now.ch_raw, q_len(now.ch_raw));
+	c_chandump(now.ch_raw);
+	printf("	chan ch_clean (=%d):	len %d:\t", now.ch_clean, q_len(now.ch_clean));
+	c_chandump(now.ch_clean);
+	printf("	int    read_count:	%d\n", now.read_count);
+	printf("	int    normalized_count:	%d\n", now.normalized_count);
+	printf("	int    rejected_count:	%d\n", now.rejected_count);
+	printf("	int    validated_count:	%d\n", now.validated_count);
+	printf("	int    norm_done:	%d\n", now.norm_done);
+	printf("	int    val_done:	%d\n", now.val_done);
 }
 void
 c_locals(int pid, int tp)
@@ -14375,8 +14353,8 @@ c_locals(int pid, int tp)
 		/* none */
 		break;
 	case 3:
-		printf("local vars proc %d (Deduplicator):\n", pid);
-	printf("	mtype  msg:	%d\n", ((P3 *)pptr(pid))->msg);
+		printf("local vars proc %d (:init:):\n", pid);
+	printf("	int    i:	%d\n", ((P3 *)pptr(pid))->i);
 		break;
 	case 2:
 		printf("local vars proc %d (Validator):\n", pid);
@@ -14385,6 +14363,7 @@ c_locals(int pid, int tp)
 	case 1:
 		printf("local vars proc %d (Normalizer):\n", pid);
 	printf("	mtype  msg:	%d\n", ((P1 *)pptr(pid))->msg);
+	printf("	int    c:	%d\n", ((P1 *)pptr(pid))->c);
 		break;
 	case 0:
 		printf("local vars proc %d (Reader):\n", pid);
@@ -14413,13 +14392,6 @@ c_chandump(int from)
 	}
 	z = qptr(from);
 	switch (((Q0 *)z)->_t) {
-	case 3:
-		for (slot = 0; slot < ((Q3 *)z)->Qlen; slot++)
-		{	printf(" [");
-			printm(((Q3 *)z)->contents[slot].fld0, 0);
-			printf("],");
-		}
-		break;
 	case 2:
 		for (slot = 0; slot < ((Q2 *)z)->Qlen; slot++)
 		{	printf(" [");
@@ -14438,7 +14410,7 @@ c_chandump(int from)
 	printf("\n");
 }
 
-Trans *t_id_lkup[51];
+Trans *t_id_lkup[102];
 
 
 #ifdef BFS_PAR

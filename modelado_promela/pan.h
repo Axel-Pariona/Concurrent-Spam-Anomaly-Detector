@@ -102,6 +102,7 @@
 #ifndef NFAIR
 	#define NFAIR	2	/* must be >= 2 */
 #endif
+#define HAS_LTL	1
 #define HAS_CODE	1
 #if defined(RANDSTORE) && !defined(RANDSTOR)
 	#define RANDSTOR	RANDSTORE
@@ -125,6 +126,12 @@
 #if defined(NOCLAIM) && defined(NP)
 	#undef NOCLAIM
 #endif
+#ifndef NOCLAIM
+	#define NCLAIMS	1
+	#ifndef NP
+		#define VERI	4
+	#endif
+#endif
 
 typedef struct S_F_MAP {
 	char *fnm;
@@ -132,30 +139,30 @@ typedef struct S_F_MAP {
 	int upto;
 } S_F_MAP;
 
-#define _nstates4	6	/* :init: */
-#define minseq4	46
-#define maxseq4	50
-#define _endstate4	5
+#define _nstates4	11	/* NO_NEGATIVOS */
+#define minseq4	92
+#define maxseq4	101
+#define _endstate4	10
 
-#define _nstates3	13	/* Deduplicator */
-#define minseq3	34
-#define maxseq3	45
-#define _endstate3	12
+#define _nstates3	21	/* :init: */
+#define minseq3	72
+#define maxseq3	91
+#define _endstate3	20
 
-#define _nstates2	13	/* Validator */
-#define minseq2	22
-#define maxseq2	33
-#define _endstate2	12
+#define _nstates2	15	/* Validator */
+#define minseq2	58
+#define maxseq2	71
+#define _endstate2	14
 
-#define _nstates1	13	/* Normalizer */
-#define minseq1	10
-#define maxseq1	21
-#define _endstate1	12
+#define _nstates1	38	/* Normalizer */
+#define minseq1	21
+#define maxseq1	57
+#define _endstate1	37
 
-#define _nstates0	11	/* Reader */
+#define _nstates0	22	/* Reader */
 #define minseq0	0
-#define maxseq0	9
-#define _endstate0	10
+#define maxseq0	20
+#define _endstate0	21
 
 extern short src_ln4[];
 extern short src_ln3[];
@@ -169,11 +176,11 @@ extern S_F_MAP src_file1[];
 extern S_F_MAP src_file0[];
 
 #define T_ID	unsigned char
-#define _T5	30
-#define _T2	31
+#define _T5	46
+#define _T2	47
 #define WS		8 /* word size in bytes */
 #define SYNC	0
-#define ASYNC	3
+#define ASYNC	2
 
 #ifndef NCORE
 	#ifdef DUAL_CORE
@@ -185,34 +192,33 @@ extern S_F_MAP src_file0[];
 	#endif
 #endif
 
-#define Pinit	((P4 *)_this)
-typedef struct P4 { /* :init: */
+typedef struct P4 { /* NO_NEGATIVOS */
 	unsigned _pid : 8;  /* 0..255 */
 	unsigned _t   : 4; /* proctype */
-	unsigned _p   : 5; /* state    */
+	unsigned _p   : 7; /* state    */
 #ifdef HAS_PRIORITY
 	unsigned _priority : 8; /* 0..255 */
 #endif
 } P4;
 #define Air4	(sizeof(P4) - 3)
 
-#define PDeduplicator	((P3 *)_this)
-typedef struct P3 { /* Deduplicator */
+#define Pinit	((P3 *)_this)
+typedef struct P3 { /* :init: */
 	unsigned _pid : 8;  /* 0..255 */
 	unsigned _t   : 4; /* proctype */
-	unsigned _p   : 5; /* state    */
+	unsigned _p   : 7; /* state    */
 #ifdef HAS_PRIORITY
 	unsigned _priority : 8; /* 0..255 */
 #endif
-	uchar msg;
+	int i;
 } P3;
-#define Air3	(sizeof(P3) - Offsetof(P3, msg) - 1*sizeof(uchar))
+#define Air3	(sizeof(P3) - Offsetof(P3, i) - 1*sizeof(int))
 
 #define PValidator	((P2 *)_this)
 typedef struct P2 { /* Validator */
 	unsigned _pid : 8;  /* 0..255 */
 	unsigned _t   : 4; /* proctype */
-	unsigned _p   : 5; /* state    */
+	unsigned _p   : 7; /* state    */
 #ifdef HAS_PRIORITY
 	unsigned _priority : 8; /* 0..255 */
 #endif
@@ -224,19 +230,20 @@ typedef struct P2 { /* Validator */
 typedef struct P1 { /* Normalizer */
 	unsigned _pid : 8;  /* 0..255 */
 	unsigned _t   : 4; /* proctype */
-	unsigned _p   : 5; /* state    */
+	unsigned _p   : 7; /* state    */
 #ifdef HAS_PRIORITY
 	unsigned _priority : 8; /* 0..255 */
 #endif
 	uchar msg;
+	int c;
 } P1;
-#define Air1	(sizeof(P1) - Offsetof(P1, msg) - 1*sizeof(uchar))
+#define Air1	(sizeof(P1) - Offsetof(P1, c) - 1*sizeof(int))
 
 #define PReader	((P0 *)_this)
 typedef struct P0 { /* Reader */
 	unsigned _pid : 8;  /* 0..255 */
 	unsigned _t   : 4; /* proctype */
-	unsigned _p   : 5; /* state    */
+	unsigned _p   : 7; /* state    */
 #ifdef HAS_PRIORITY
 	unsigned _priority : 8; /* 0..255 */
 #endif
@@ -247,7 +254,7 @@ typedef struct P0 { /* Reader */
 typedef struct P5 { /* np_ */
 	unsigned _pid : 8;  /* 0..255 */
 	unsigned _t   : 4; /* proctype */
-	unsigned _p   : 5; /* state    */
+	unsigned _p   : 7; /* state    */
 #ifdef HAS_PRIORITY
 	unsigned _priority : 8; /* 0..255 */
 #endif
@@ -444,9 +451,14 @@ typedef struct State {
 		unsigned short _event;
 	#endif
 #endif
-	uchar ch_reader_norm;
-	uchar ch_norm_val;
-	uchar ch_val_dedup;
+	uchar ch_raw;
+	uchar ch_clean;
+	int read_count;
+	int normalized_count;
+	int rejected_count;
+	int validated_count;
+	int norm_done;
+	int val_done;
 #ifdef TRIX
 	/* room for 512 proc+chan ptrs, + safety margin */
 	char *_ids_[MAXPROC+MAXQ+4];
@@ -468,7 +480,6 @@ typedef struct TRIX_v6 {
 #endif
 
 #define HAS_TRACK	0
-/* hidden variable: */	int processed;
 #define FORWARD_MOVES	"pan.m"
 #define BACKWARD_MOVES	"pan.b"
 #define TRANSITIONS	"pan.t"
@@ -477,15 +488,15 @@ typedef struct TRIX_v6 {
 #define _endstate5	2 /* np_ */
 
 #define _start5	0 /* np_ */
-#define _start4	1
-#define _start3	9
-#define _start2	9
-#define _start1	9
-#define _start0	7
+#define _start4	6
+#define _start3	1
+#define _start2	11
+#define _start1	1
+#define _start0	1
 #ifdef NP
 	#define ACCEPT_LAB	1 /* at least 1 in np_ */
 #else
-	#define ACCEPT_LAB	0 /* user-defined accept labels */
+	#define ACCEPT_LAB	1 /* user-defined accept labels */
 #endif
 #ifdef MEMCNT
 	#ifdef MEMLIM
@@ -514,27 +525,20 @@ typedef struct TRIX_v6 {
 	#define MEMLIM	(2048)	/* need a default, using 2 GB */
 #endif
 #define PROG_LAB	0 /* progress labels */
-#define NQS	3
-typedef struct Q3 {
-	uchar Qlen;	/* q_size */
-	uchar _t;	/* q_type */
-	struct {
-		uchar fld0;
-	} contents[5];
-} Q3;
+#define NQS	2
 typedef struct Q2 {
 	uchar Qlen;	/* q_size */
 	uchar _t;	/* q_type */
 	struct {
 		uchar fld0;
-	} contents[5];
+	} contents[20];
 } Q2;
 typedef struct Q1 {
 	uchar Qlen;	/* q_size */
 	uchar _t;	/* q_type */
 	struct {
 		uchar fld0;
-	} contents[5];
+	} contents[20];
 } Q1;
 typedef struct Q0 {	/* generic q */
 	uchar Qlen;	/* q_size */
@@ -862,7 +866,7 @@ void qsend(int, int, int, int);
 #define GLOBAL	7
 #define BAD	8
 #define ALPHA_F	9
-#define NTRANS	32
+#define NTRANS	48
 #if defined(BFS_PAR) || NCORE>1
 	void e_critical(int);
 	void x_critical(int);
