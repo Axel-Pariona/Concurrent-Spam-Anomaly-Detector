@@ -403,7 +403,7 @@ func main() {
 
 	start := time.Now()
 
-	numWorkers := 16 //runtime.NumCPU()
+	numWorkers := runtime.NumCPU()
 
 	fmt.Println("Workers:", numWorkers)
 
