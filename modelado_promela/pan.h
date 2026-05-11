@@ -2,7 +2,7 @@
 #define PAN_H
 
 #define SpinVersion	"Spin Version 6.5.2 -- 6 December 2019"
-#define PanSource	"modelo.pml"
+#define PanSource	"modelo_deadlock.pml"
 
 #define G_long	8
 #define G_int	4
@@ -102,7 +102,6 @@
 #ifndef NFAIR
 	#define NFAIR	2	/* must be >= 2 */
 #endif
-#define HAS_LTL	1
 #define HAS_CODE	1
 #if defined(RANDSTORE) && !defined(RANDSTOR)
 	#define RANDSTOR	RANDSTORE
@@ -121,16 +120,10 @@
 #endif
 #ifdef NP
 	#define HAS_NP	2
-	#define VERI	5	/* np_ */
+	#define VERI	4	/* np_ */
 #endif
 #if defined(NOCLAIM) && defined(NP)
 	#undef NOCLAIM
-#endif
-#ifndef NOCLAIM
-	#define NCLAIMS	1
-	#ifndef NP
-		#define VERI	4
-	#endif
 #endif
 
 typedef struct S_F_MAP {
@@ -138,11 +131,6 @@ typedef struct S_F_MAP {
 	int from;
 	int upto;
 } S_F_MAP;
-
-#define _nstates4	11	/* NO_NEGATIVOS */
-#define minseq4	92
-#define maxseq4	101
-#define _endstate4	10
 
 #define _nstates3	21	/* :init: */
 #define minseq3	72
@@ -164,20 +152,18 @@ typedef struct S_F_MAP {
 #define maxseq0	20
 #define _endstate0	21
 
-extern short src_ln4[];
 extern short src_ln3[];
 extern short src_ln2[];
 extern short src_ln1[];
 extern short src_ln0[];
-extern S_F_MAP src_file4[];
 extern S_F_MAP src_file3[];
 extern S_F_MAP src_file2[];
 extern S_F_MAP src_file1[];
 extern S_F_MAP src_file0[];
 
 #define T_ID	unsigned char
-#define _T5	46
-#define _T2	47
+#define _T5	44
+#define _T2	45
 #define WS		8 /* word size in bytes */
 #define SYNC	0
 #define ASYNC	2
@@ -191,16 +177,6 @@ extern S_F_MAP src_file0[];
 		#define NCORE	1
 	#endif
 #endif
-
-typedef struct P4 { /* NO_NEGATIVOS */
-	unsigned _pid : 8;  /* 0..255 */
-	unsigned _t   : 4; /* proctype */
-	unsigned _p   : 7; /* state    */
-#ifdef HAS_PRIORITY
-	unsigned _priority : 8; /* 0..255 */
-#endif
-} P4;
-#define Air4	(sizeof(P4) - 3)
 
 #define Pinit	((P3 *)_this)
 typedef struct P3 { /* :init: */
@@ -251,15 +227,15 @@ typedef struct P0 { /* Reader */
 } P0;
 #define Air0	(sizeof(P0) - Offsetof(P0, i) - 1*sizeof(int))
 
-typedef struct P5 { /* np_ */
+typedef struct P4 { /* np_ */
 	unsigned _pid : 8;  /* 0..255 */
 	unsigned _t   : 4; /* proctype */
 	unsigned _p   : 7; /* state    */
 #ifdef HAS_PRIORITY
 	unsigned _priority : 8; /* 0..255 */
 #endif
-} P5;
-#define Air5	(sizeof(P5) - 3)
+} P4;
+#define Air4	(sizeof(P4) - 3)
 
 #define Pclaim	P0
 #ifndef NCLAIMS
@@ -483,12 +459,11 @@ typedef struct TRIX_v6 {
 #define FORWARD_MOVES	"pan.m"
 #define BACKWARD_MOVES	"pan.b"
 #define TRANSITIONS	"pan.t"
-#define _NP_	5
-#define _nstates5	3 /* np_ */
-#define _endstate5	2 /* np_ */
+#define _NP_	4
+#define _nstates4	3 /* np_ */
+#define _endstate4	2 /* np_ */
 
-#define _start5	0 /* np_ */
-#define _start4	6
+#define _start4	0 /* np_ */
 #define _start3	1
 #define _start2	11
 #define _start1	1
@@ -496,7 +471,7 @@ typedef struct TRIX_v6 {
 #ifdef NP
 	#define ACCEPT_LAB	1 /* at least 1 in np_ */
 #else
-	#define ACCEPT_LAB	1 /* user-defined accept labels */
+	#define ACCEPT_LAB	0 /* user-defined accept labels */
 #endif
 #ifdef MEMCNT
 	#ifdef MEMLIM
@@ -866,7 +841,7 @@ void qsend(int, int, int, int);
 #define GLOBAL	7
 #define BAD	8
 #define ALPHA_F	9
-#define NTRANS	48
+#define NTRANS	46
 #if defined(BFS_PAR) || NCORE>1
 	void e_critical(int);
 	void x_critical(int);
