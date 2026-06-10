@@ -1,7 +1,32 @@
-dataset/dataset_1M_raw.csv
-dataset/dataset_clean.csv
-dataset/rejected_records.csv
-dataset/reporte_limpieza.txt
-dataset/dataset_final.csv
-dataset/spam_detected.csv
-dataset/*.csv
+# Generated datasets
+data/dataset_1M_raw.csv
+data/dataset_clean.csv
+data/rejected_records.csv
+data/dataset_final.csv
+data/dataset_final_secuencial.csv
+data/dataset_final_concurrente.csv
+data/spam_detected.csv
+data/spam_detected_secuencial.csv
+data/spam_detected_concurrente.csv
+data/reporte_limpieza.txt
+
+# SPIN generated files
+formal/pan
+formal/pan.*
+formal/_spin_nvr.tmp
+formal/*.trail
+
+# Go binaries
+*.exe
+*.out
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Editor / OS
+.vscode/
+.DS_Store
+*.Zone.Identifier
