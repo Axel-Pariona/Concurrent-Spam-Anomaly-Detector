@@ -408,7 +408,7 @@ func main() {
 	fmt.Println("Workers:", numWorkers)
 
 	file, err := os.Open(
-		"../dataset/dataset_clean.csv",
+		"../data/dataset_clean.csv",
 	)
 
 	if err != nil {
@@ -423,11 +423,11 @@ func main() {
 	header, _ := reader.Read()
 
 	cleanFile, _ := os.Create(
-		"../dataset/dataset_final_concurrente.csv",
+		"../data/dataset_final_concurrente.csv",
 	)
 
 	spamFile, _ := os.Create(
-		"../dataset/spam_detected_concurrente.csv",
+		"../data/spam_detected_concurrente.csv",
 	)
 
 	defer cleanFile.Close()

@@ -12,17 +12,17 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 INPUT_FILE = os.path.join(
     BASE_DIR,
-    "../dataset/dataset_base.csv",
+    "../data/dataset_base.csv",
 )
 
 OUTPUT_FILE = os.path.join(
     BASE_DIR,
-    "../dataset/dataset_1M_raw.csv",
+    "../data/dataset_1M_raw.csv",
 )
 
 LOGS_DIR = os.path.join(
     BASE_DIR,
-    "logs",
+    "../logs",
 )
 
 SUMMARY_FILE = os.path.join(

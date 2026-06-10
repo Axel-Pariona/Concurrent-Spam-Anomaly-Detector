@@ -528,7 +528,7 @@ func main() {
 	// =================================
 
 	go reader(
-		"../dataset/dataset_1M_raw.csv",
+		"../data/dataset_1M_raw.csv",
 		rawChan,
 	)
 
@@ -595,13 +595,13 @@ func main() {
 	// =================================
 
 	go writer(
-		"../dataset/dataset_clean.csv",
+		"../data/dataset_clean.csv",
 		validChan,
 		doneClean,
 	)
 
 	go rejectedWriter(
-		"../dataset/rejected_records.csv",
+		"../data/rejected_records.csv",
 		rejectChan,
 		doneReject,
 	)

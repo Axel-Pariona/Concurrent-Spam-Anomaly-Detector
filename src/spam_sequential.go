@@ -421,7 +421,7 @@ func main() {
 	// =================================
 
 	file, err := os.Open(
-		"../dataset/dataset_clean.csv",
+		"../data/dataset_clean.csv",
 	)
 
 	if err != nil {
@@ -441,11 +441,11 @@ func main() {
 	// =================================
 
 	cleanFile, _ := os.Create(
-		"../dataset/dataset_final_secuencial.csv",
+		"../data/dataset_final_secuencial.csv",
 	)
 
 	spamFile, _ := os.Create(
-		"../dataset/spam_detected_secuencial.csv",
+		"../data/spam_detected_secuencial.csv",
 	)
 
 	defer cleanFile.Close()

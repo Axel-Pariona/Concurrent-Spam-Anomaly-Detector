@@ -141,7 +141,7 @@ func main() {
 		duration, output := runProgram(
 			"go",
 			"run",
-			"secuencial.go",
+			"spam_sequential.go",
 		)
 
 		mem := extractMemoryMB(output)
@@ -171,7 +171,7 @@ func main() {
 		duration, output := runProgram(
 			"go",
 			"run",
-			"concurrente.go",
+			"spam_concurrent.go",
 		)
 
 		mem := extractMemoryMB(output)
